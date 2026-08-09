@@ -24,11 +24,35 @@ export type Scene = {
   title: string;
   image: string;
   core?: boolean;
+  /** 观察事件：只看剧情，不做选择 */
+  observe?: boolean;
+  /** 观察事件结尾的一句旁白 */
+  outcome?: string;
   dialogue: { who: string; line: string }[];
   question: string;
   hint: string;
   choices: Choice[];
 };
+
+/** 图上标出的"此刻正在发生"的热点 */
+export type Hotspot = {
+  sceneId: string;
+  label: string;
+  top: string;
+  left: string;
+};
+
+export const hotspots: Hotspot[] = [
+  { sceneId: "kitchen", label: "厨房 · 有人在说话", top: "26%", left: "58%" },
+  { sceneId: "balcony", label: "阳台 · 一个人站着", top: "62%", left: "10%" },
+];
+
+/** 不需要交互的碎片，只用来铺节奏 */
+export const microEvents: { time: string; text: string }[] = [
+  { time: "19:20", text: "白露把晚餐端上桌，陆野第一个坐下。" },
+  { time: "22:05", text: "夏可在客厅放了首很老的歌，没人换台。" },
+];
+
 
 export type Member = {
   name: string;
