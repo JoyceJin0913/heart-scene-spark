@@ -61,7 +61,7 @@ export function RoomNight({
   const talked = Array.from(new Set(chatLog.map((c) => c.name)));
 
   return (
-    <div className="min-h-[100dvh] pb-8">
+    <div className="flex min-h-[100dvh] flex-col pb-8">
       <header className="flex items-center gap-2 px-5 pt-6">
         <button
           onClick={() => (mode === "menu" ? onLeave() : setMode("menu"))}
@@ -80,14 +80,14 @@ export function RoomNight({
       </header>
 
       {mode === "menu" && (
-        <div className="mt-4 flex flex-col gap-4 px-5 animate-fade-in">
-          <div className="relative overflow-hidden rounded-3xl">
+        <div className="mt-4 flex flex-1 flex-col gap-3 px-5 animate-fade-in">
+          <div className="relative shrink-0 overflow-hidden rounded-3xl">
             <img
               src={roomNightImg}
               alt="夜里的房间"
               width={896}
               height={1024}
-              className="aspect-[4/3] w-full object-cover"
+              className="aspect-[16/10] w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-4">
@@ -98,19 +98,21 @@ export function RoomNight({
             </div>
           </div>
 
-          <div className="grid flex-1 grid-cols-1 gap-3">
+          <div className="grid flex-1 grid-cols-2 gap-3">
             <RoomEntry
-              icon={<Sparkles className="size-6 text-female" />}
+              icon={<Sparkles className="size-7 text-female" />}
               title="今晚的心动抉择"
-              desc="给一个人发心动短信，其余的人可以标记心动或留意"
+              desc="给一个人发短信，其余可标记心动或留意"
               tag="1 次 / 每晚"
+              tone="female"
               onClick={() => setMode("choice")}
             />
             <RoomEntry
-              icon={<Gamepad2 className="size-6 text-male" />}
+              icon={<Gamepad2 className="size-7 text-male" />}
               title="玩心动小游戏"
-              desc="回忆今天的三件事，答对越多，心动值越高"
+              desc="回忆今天的三件事，答对越多心动值越高"
               tag="3 题 · 可得 +9"
+              tone="male"
               onClick={() => setMode("game")}
             />
           </div>
@@ -130,34 +132,43 @@ function RoomEntry({
   title,
   desc,
   tag,
+  tone = "primary",
   onClick,
 }: {
   icon: React.ReactNode;
   title: string;
   desc: string;
   tag?: string;
+  tone?: "female" | "male" | "primary";
   onClick: () => void;
 }) {
+  const toneClass =
+    tone === "female" ? "bg-female/15 text-female" : tone === "male" ? "bg-male/15 text-male" : "bg-secondary/60 text-primary";
+  const borderClass =
+    tone === "female" ? "border-female/30" : tone === "male" ? "border-male/30" : "border-border";
+
   return (
     <button
       onClick={onClick}
-      className="group flex w-full items-start gap-4 rounded-3xl glass-card p-5 text-left transition-colors hover:bg-secondary/60 active:scale-[0.99]"
+      className={`group flex h-full w-full flex-col items-start gap-3 rounded-3xl border ${borderClass} p-4 text-left transition-colors hover:bg-secondary/60 active:scale-[0.99]`}
     >
-      <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-secondary/60">
+      <span className={`grid size-12 shrink-0 place-items-center rounded-2xl ${toneClass}`}>
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
-          <span className="text-base font-semibold">{title}</span>
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold leading-tight">{title}</span>
           {tag && (
             <span className="rounded-full bg-secondary/70 px-2 py-0.5 text-[10px] text-muted-foreground">
               {tag}
             </span>
           )}
         </span>
-        <span className="mt-1.5 block text-xs leading-relaxed text-muted-foreground">{desc}</span>
+        <span className="mt-2 block text-[11px] leading-relaxed text-muted-foreground">{desc}</span>
       </span>
-      <ChevronRight className="mt-3 size-4 shrink-0 text-muted-foreground" />
+      <span className="mt-auto inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
+        进入 <ChevronRight className="size-3.5" />
+      </span>
     </button>
   );
 }
