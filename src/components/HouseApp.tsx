@@ -31,13 +31,13 @@ import {
 
 type TabKey = "house" | "relationships" | "me";
 type Picked = Record<string, Choice["key"]>;
+export type ChatLogEntry = { name: string; label: string; say: string; reply: string };
 
 export function HouseApp() {
   const [tab, setTab] = useState<TabKey>("house");
   const [openScene, setOpenScene] = useState<Scene | null>(null);
   const [picked, setPicked] = useState<Picked>({});
-  const coreScene = scenes.find((s) => s.core)!;
-  const coreDone = Boolean(picked[coreScene.id]);
+  const [chatLog, setChatLog] = useState<ChatLogEntry[]>([]);
 
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
@@ -46,7 +46,8 @@ export function HouseApp() {
           <HouseContent
             openScene={openScene}
             picked={picked}
-            coreDone={coreDone}
+            chatLog={chatLog}
+            onLog={(e) => setChatLog((l) => [...l, e])}
             onOpen={(s) => setOpenScene(s)}
             onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
             onBack={() => setOpenScene(null)}
@@ -63,14 +64,16 @@ export function HouseApp() {
 function HouseContent({
   openScene,
   picked,
-  coreDone,
+  chatLog,
+  onLog,
   onOpen,
   onPick,
   onBack,
 }: {
   openScene: Scene | null;
   picked: Picked;
-  coreDone: boolean;
+  chatLog: ChatLogEntry[];
+  onLog: (e: ChatLogEntry) => void;
   onOpen: (s: Scene) => void;
   onPick: (id: string, k: Choice["key"]) => void;
   onBack: () => void;
@@ -86,33 +89,28 @@ function HouseContent({
     );
   }
 
-  return (
-    <HomeView
-      picked={picked}
-      coreDone={coreDone}
-      onOpen={onOpen}
-    />
-  );
+  return <HomeView picked={picked} chatLog={chatLog} onLog={onLog} onOpen={onOpen} />;
 }
 
 const ROOMS = ["客厅", "厨房", "阳台"] as const;
 
 function HomeView({
   picked,
-  coreDone,
+  chatLog,
+  onLog,
   onOpen,
 }: {
   picked: Picked;
-  coreDone: boolean;
+  chatLog: ChatLogEntry[];
+  onLog: (e: ChatLogEntry) => void;
   onOpen: (s: Scene) => void;
 }) {
-  const coreScene = scenes.find((s) => s.core)!;
-  const observeScenes = scenes.filter((s) => !s.core);
+  const allScenes = scenes;
   const hero = scenes[1]!;
   const [who, setWho] = useState<Member | null>(null);
   const [chatWith, setChatWith] = useState<Member | null>(null);
 
-  const total = scenes.length + microEvents.length;
+
 
   return (
     <div>
