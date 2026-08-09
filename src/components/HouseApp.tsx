@@ -440,33 +440,69 @@ function RelationshipCard({ card }: { card: { name: string; value: number; desc:
 }
 
 function RelationshipGraph() {
-  const nodeRefs = new Map<string, React.RefObject<HTMLButtonElement | null>>();
-  relationshipGraph.nodes.forEach((n) => {
-    nodeRefs.set(n.name, { current: null });
-  });
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const nodeRefs = useRef(new Map<string, HTMLButtonElement | null>());
+  const [lines, setLines] = useState<
+    { x1: number; y1: number; x2: number; y2: number }[]
+  >([]);
+
+  const updateLines = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    const cRect = container.getBoundingClientRect();
+    const next = relationshipGraph.edges
+      .map(([a, b]) => {
+        const aEl = nodeRefs.current.get(a);
+        const bEl = nodeRefs.current.get(b);
+        if (!aEl || !bEl) return null;
+        const aRect = aEl.getBoundingClientRect();
+        const bRect = bEl.getBoundingClientRect();
+        return {
+          x1: aRect.left + aRect.width / 2 - cRect.left,
+          y1: aRect.top + aRect.height / 2 - cRect.top,
+          x2: bRect.left + bRect.width / 2 - cRect.left,
+          y2: bRect.top + bRect.height / 2 - cRect.top,
+        };
+      })
+      .filter((x): x is { x1: number; y1: number; x2: number; y2: number } => x !== null);
+    setLines(next);
+  };
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(updateLines);
+    const onResize = () => updateLines();
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
       <svg className="absolute inset-0 h-full w-full pointer-events-none">
-        {relationshipGraph.edges.map(([a, b]) => {
-          const aRef = nodeRefs.get(a);
-          const bRef = nodeRefs.get(b);
-          if (!aRef || !bRef) return null;
-          return (
-            <GraphLine key={`${a}-${b}`} aRef={aRef} bRef={bRef} />
-          );
-        })}
+        {lines.map((l, i) => (
+          <line
+            key={i}
+            x1={l.x1}
+            y1={l.y1}
+            x2={l.x2}
+            y2={l.y2}
+            stroke="currentColor"
+            className="text-border"
+            strokeWidth="1.5"
+          />
+        ))}
       </svg>
 
       {relationshipGraph.nodes.map((n) => {
         const member = members.find((m) => m.name === n.name)!;
         const avatar = avatarOf(n.name);
-        const ref = nodeRefs.get(n.name)!;
 
         return (
           <button
             key={n.name}
-            ref={ref}
+            ref={(el) => nodeRefs.current.set(n.name, el)}
             style={{ top: n.top, left: n.left, transform: "translate(-50%, -50%)" }}
             className="absolute flex flex-col items-center gap-1"
           >
@@ -494,44 +530,6 @@ function RelationshipGraph() {
   );
 }
 
-function GraphLine({
-  aRef,
-  bRef,
-}: {
-  aRef: React.RefObject<HTMLButtonElement | null>;
-  bRef: React.RefObject<HTMLButtonElement | null>;
-}) {
-  const [path, setPath] = useState("");
-
-  const update = () => {
-    if (!aRef.current || !bRef.current) return;
-    const aRect = aRef.current.getBoundingClientRect();
-    const bRect = bRef.current.getBoundingClientRect();
-    const parent = aRef.current.parentElement!;
-    const pRect = parent.getBoundingClientRect();
-
-    const x1 = aRect.left + aRect.width / 2 - pRect.left;
-    const y1 = aRect.top + aRect.height / 2 - pRect.top;
-    const x2 = bRect.left + bRect.width / 2 - pRect.left;
-    const y2 = bRect.top + bRect.height / 2 - pRect.top;
-
-    setPath(`M ${x1} ${y1} L ${x2} ${y2}`);
-  };
-
-  useState(() => {
-    update();
-  });
-
-  return (
-    <path
-      d={path}
-      stroke="currentColor"
-      className="text-border"
-      strokeWidth="1.5"
-      fill="none"
-    />
-  );
-}
 
 function MePlaceholder() {
   return (
