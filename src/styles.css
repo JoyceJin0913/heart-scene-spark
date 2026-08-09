@@ -147,3 +147,21 @@
     color: var(--color-foreground);
   }
 }
+
+@utility bg-romance {
+  background-image: var(--gradient-romance);
+}
+
+@utility bg-night-fade {
+  background-image: var(--gradient-night);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+@utility glass-card {
+  background-color: color-mix(in oklab, var(--card) 72%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+}
