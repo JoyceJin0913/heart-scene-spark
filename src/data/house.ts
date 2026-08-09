@@ -1,6 +1,11 @@
 import living from "@/assets/scene-living.jpg";
 import kitchen from "@/assets/scene-kitchen.jpg";
 import balcony from "@/assets/scene-balcony.jpg";
+import linyi from "@/assets/avatars/linyi.jpg";
+import shenzhi from "@/assets/avatars/shenzhi.jpg";
+import wenning from "@/assets/avatars/wenning.jpg";
+import xujia from "@/assets/avatars/xujia.jpg";
+import suyao from "@/assets/avatars/suyao.jpg";
 
 export type Gender = "m" | "f";
 
@@ -30,20 +35,24 @@ export type Member = {
   where: string;
   top: string;
   left: string;
+  avatar?: string;
 };
 
 export const members: Member[] = [
-  { name: "林一", gender: "m", where: "在客厅", top: "22%", left: "6%" },
+  { name: "林一", gender: "m", where: "在客厅", top: "22%", left: "6%", avatar: linyi },
   { name: "周叙", gender: "m", where: "在厨房", top: "22%", left: "56%" },
-  { name: "沈知", gender: "m", where: "在阳台", top: "33%", left: "30%" },
+  { name: "沈知", gender: "m", where: "在阳台", top: "33%", left: "30%", avatar: shenzhi },
   { name: "陆野", gender: "m", where: "在客厅", top: "44%", left: "6%" },
   { name: "江郁", gender: "m", where: "在阳台", top: "44%", left: "56%" },
-  { name: "苏杳", gender: "f", where: "在客厅", top: "55%", left: "6%" },
-  { name: "温宁", gender: "f", where: "在厨房", top: "55%", left: "56%" },
-  { name: "许佳", gender: "f", where: "在阳台", top: "66%", left: "30%" },
+  { name: "苏杳", gender: "f", where: "在客厅", top: "55%", left: "6%", avatar: suyao },
+  { name: "温宁", gender: "f", where: "在厨房", top: "55%", left: "56%", avatar: wenning },
+  { name: "许佳", gender: "f", where: "在阳台", top: "66%", left: "30%", avatar: xujia },
   { name: "白露", gender: "f", where: "在厨房", top: "77%", left: "6%" },
   { name: "夏可", gender: "f", where: "在客厅", top: "77%", left: "56%" },
 ];
+
+export const avatarOf = (name: string): string | undefined =>
+  members.find((m) => m.name === name)?.avatar;
 
 export const genderOf = (name: string): Gender =>
   members.find((m) => m.name === name)?.gender ?? "m";
@@ -175,4 +184,61 @@ export const dateCard = {
   title: "明日约会 · 城南旧书店",
   time: "Day 05 · 15:00",
   desc: "五男五女，两人一组，60 分钟独处。名单会在今晚的核心选择之后揭晓。",
+};
+
+export type RelationshipCard = {
+  name: string;
+  value: number;
+  desc: string;
+  meta: string;
+  active: boolean;
+};
+
+export const relationshipCards: RelationshipCard[] = [
+  {
+    name: "温宁",
+    value: 72,
+    desc: "你今天主动找她聊天",
+    meta: "21:13 厨房 · 聊了 12 分钟",
+    active: true,
+  },
+  {
+    name: "许佳",
+    value: 58,
+    desc: "她在晚餐时一直看你",
+    meta: "18:47 餐桌 · 偷偷看了你",
+    active: true,
+  },
+  {
+    name: "苏杳",
+    value: 34,
+    desc: "你们今天没有说话",
+    meta: "暂无互动",
+    active: false,
+  },
+];
+
+export type GraphNode = {
+  name: string;
+  top: string;
+  left: string;
+};
+
+export type GraphEdge = [string, string];
+
+export const relationshipGraph: { nodes: GraphNode[]; edges: GraphEdge[] } = {
+  nodes: [
+    { name: "温宁", top: "50%", left: "50%" },
+    { name: "林一", top: "20%", left: "22%" },
+    { name: "沈知", top: "20%", left: "78%" },
+    { name: "许佳", top: "80%", left: "22%" },
+    { name: "苏杳", top: "80%", left: "78%" },
+  ],
+  edges: [
+    ["林一", "温宁"],
+    ["沈知", "温宁"],
+    ["许佳", "沈知"],
+    ["苏杳", "林一"],
+    ["温宁", "苏杳"],
+  ],
 };

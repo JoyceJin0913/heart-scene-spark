@@ -1,10 +1,32 @@
-import { useState } from "react";
-import { Home, Heart, User, ChevronLeft, Check, Lock } from "lucide-react";
-import { scenes, members, dateCard, genderOf, type Scene, type Choice } from "@/data/house";
+import { useEffect, useRef, useState } from "react";
 
+import {
+  Home,
+  Heart,
+  User,
+  ChevronLeft,
+  Check,
+  Lock,
+  ChevronRight,
+} from "lucide-react";
+import {
+  scenes,
+  members,
+  dateCard,
+  genderOf,
+  avatarOf,
+  relationshipCards,
+  relationshipGraph,
+  type Scene,
+  type Choice,
+  type Member,
+} from "@/data/house";
+
+type TabKey = "house" | "relationships" | "me";
 type Picked = Record<string, Choice["key"]>;
 
 export function HouseApp() {
+  const [tab, setTab] = useState<TabKey>("house");
   const [openScene, setOpenScene] = useState<Scene | null>(null);
   const [picked, setPicked] = useState<Picked>({});
   const coreScene = scenes.find((s) => s.core)!;
@@ -13,23 +35,56 @@ export function HouseApp() {
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
       <div className="flex-1 pb-24">
-        {openScene ? (
-          <SceneView
-            scene={openScene}
-            picked={picked[openScene.id]}
-            onPick={(k) => setPicked((p) => ({ ...p, [openScene.id]: k }))}
-            onBack={() => setOpenScene(null)}
-          />
-        ) : (
-          <HomeView
+        {tab === "house" && (
+          <HouseContent
+            openScene={openScene}
             picked={picked}
             coreDone={coreDone}
             onOpen={(s) => setOpenScene(s)}
+            onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
+            onBack={() => setOpenScene(null)}
           />
         )}
+        {tab === "relationships" && <RelationshipsView />}
+        {tab === "me" && <MePlaceholder />}
       </div>
-      <TabBar />
+      <TabBar active={tab} onChange={setTab} />
     </div>
+  );
+}
+
+function HouseContent({
+  openScene,
+  picked,
+  coreDone,
+  onOpen,
+  onPick,
+  onBack,
+}: {
+  openScene: Scene | null;
+  picked: Picked;
+  coreDone: boolean;
+  onOpen: (s: Scene) => void;
+  onPick: (id: string, k: Choice["key"]) => void;
+  onBack: () => void;
+}) {
+  if (openScene) {
+    return (
+      <SceneView
+        scene={openScene}
+        picked={picked[openScene.id]}
+        onPick={(k) => onPick(openScene.id, k)}
+        onBack={onBack}
+      />
+    );
+  }
+
+  return (
+    <HomeView
+      picked={picked}
+      coreDone={coreDone}
+      onOpen={onOpen}
+    />
   );
 }
 
@@ -95,7 +150,6 @@ function HomeView({
           </span>
         </div>
       </section>
-
 
       <section className="mt-6 px-5">
         <div className="flex items-baseline justify-between">
@@ -212,7 +266,6 @@ function SceneView({
               {d.line}
             </p>
           ))}
-
         </div>
       </div>
 
@@ -240,7 +293,6 @@ function SceneView({
                   }`}
                 >
                   {i + 1}
-
                 </span>
                 <span className="text-sm">{c.label}</span>
               </button>
@@ -276,34 +328,264 @@ function SceneView({
   );
 }
 
-function TabBar() {
-  const items = [
-    { icon: Home, label: "小屋", active: true },
-    { icon: Heart, label: "心动 · 观察关系", active: false },
-    { icon: User, label: "我的 · 沉淀故事", active: false },
+function RelationshipsView() {
+  const [subTab, setSubTab] = useState<"moments" | "dynamics">("moments");
+
+  return (
+    <div className="px-5 pt-8">
+      <header className="text-center">
+        <p className="text-xs tracking-widest text-accent">关系</p>
+        <h1 className="mt-1 text-2xl font-semibold text-primary">关系</h1>
+        <p className="mt-2 text-sm text-muted-foreground">你们之间，发生了什么？</p>
+      </header>
+
+      <div className="mt-6 flex items-center justify-center gap-6 text-sm">
+        <button
+          onClick={() => setSubTab("moments")}
+          className={`pb-1 transition-colors ${
+            subTab === "moments"
+              ? "border-b-2 border-primary font-medium text-primary"
+              : "text-muted-foreground"
+          }`}
+        >
+          心动瞬间
+        </button>
+        <button
+          onClick={() => setSubTab("dynamics")}
+          className={`pb-1 transition-colors ${
+            subTab === "dynamics"
+              ? "border-b-2 border-primary font-medium text-primary"
+              : "text-muted-foreground"
+          }`}
+        >
+          关系动态
+        </button>
+      </div>
+
+      {subTab === "moments" ? (
+        <div className="mt-5 space-y-3">
+          {relationshipCards.map((card) => (
+            <RelationshipCard key={card.name} card={card} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-5 rounded-2xl glass-card p-4 text-center">
+          <p className="text-sm text-muted-foreground">关系动态将在明天的约会后更新。</p>
+        </div>
+      )}
+
+      <section className="mt-8">
+        <h2 className="text-base font-semibold">关系走向</h2>
+        <div className="relative mt-4 h-72 rounded-3xl glass-card overflow-hidden">
+          <RelationshipGraph />
+        </div>
+      </section>
+
+      <div className="mt-4 flex items-center justify-center gap-1 text-sm text-muted-foreground">
+        <span>查看完整关系图</span>
+        <ChevronRight className="size-4" />
+      </div>
+
+      <div className="h-8" />
+    </div>
+  );
+}
+
+function RelationshipCard({ card }: { card: { name: string; value: number; desc: string; meta: string; active: boolean } }) {
+  const member = members.find((m) => m.name === card.name) as Member;
+  const avatar = avatarOf(card.name);
+  const isFemale = member.gender === "f";
+
+  return (
+    <div className="flex items-center gap-4 rounded-2xl glass-card p-3">
+      <div className="relative shrink-0">
+        {avatar ? (
+          <img
+            src={avatar}
+            alt={card.name}
+            loading="lazy"
+            width={64}
+            height={64}
+            className="size-16 rounded-2xl object-cover"
+          />
+        ) : (
+          <div className="grid size-16 place-items-center rounded-2xl bg-secondary text-lg font-medium">
+            {card.name[0]}
+          </div>
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className={`text-sm font-semibold ${isFemale ? "text-female" : "text-male"}`}>
+              {card.name}
+            </span>
+          </div>
+          <span className="text-[11px] text-muted-foreground">
+            心动值 <span className={card.active ? "text-female" : "text-muted-foreground"}>{card.value}</span>
+          </span>
+        </div>
+
+        <p className="mt-1 text-sm text-foreground">{card.desc}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{card.meta}</p>
+      </div>
+
+      <Heart
+        className={`size-5 shrink-0 ${card.active ? "fill-female text-female" : "text-muted-foreground"}`}
+        strokeWidth={card.active ? 1.5 : 2}
+      />
+    </div>
+  );
+}
+
+function RelationshipGraph() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const nodeRefs = useRef(new Map<string, HTMLButtonElement | null>());
+  const [lines, setLines] = useState<
+    { x1: number; y1: number; x2: number; y2: number }[]
+  >([]);
+
+  const updateLines = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    const cRect = container.getBoundingClientRect();
+    const next = relationshipGraph.edges
+      .map(([a, b]) => {
+        const aEl = nodeRefs.current.get(a);
+        const bEl = nodeRefs.current.get(b);
+        if (!aEl || !bEl) return null;
+        const aRect = aEl.getBoundingClientRect();
+        const bRect = bEl.getBoundingClientRect();
+        return {
+          x1: aRect.left + aRect.width / 2 - cRect.left,
+          y1: aRect.top + aRect.height / 2 - cRect.top,
+          x2: bRect.left + bRect.width / 2 - cRect.left,
+          y2: bRect.top + bRect.height / 2 - cRect.top,
+        };
+      })
+      .filter((x): x is { x1: number; y1: number; x2: number; y2: number } => x !== null);
+    setLines(next);
+  };
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(updateLines);
+    const onResize = () => updateLines();
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative h-full w-full">
+      <svg className="absolute inset-0 h-full w-full pointer-events-none">
+        {lines.map((l, i) => (
+          <line
+            key={i}
+            x1={l.x1}
+            y1={l.y1}
+            x2={l.x2}
+            y2={l.y2}
+            stroke="currentColor"
+            className="text-border"
+            strokeWidth="1.5"
+          />
+        ))}
+      </svg>
+
+      {relationshipGraph.nodes.map((n) => {
+        const member = members.find((m) => m.name === n.name)!;
+        const avatar = avatarOf(n.name);
+
+        return (
+          <button
+            key={n.name}
+            ref={(el) => { nodeRefs.current.set(n.name, el); }}
+            style={{ top: n.top, left: n.left, transform: "translate(-50%, -50%)" }}
+            className="absolute flex flex-col items-center gap-1"
+          >
+            {avatar ? (
+              <img
+                src={avatar}
+                alt={n.name}
+                loading="lazy"
+                width={56}
+                height={56}
+                className="size-14 rounded-full border-2 border-card object-cover shadow"
+              />
+            ) : (
+              <div className="grid size-14 place-items-center rounded-full border-2 border-card bg-secondary text-sm font-medium shadow">
+                {n.name[0]}
+              </div>
+            )}
+            <span className={`text-xs ${member.gender === "f" ? "text-female" : "text-male"}`}>
+              {n.name}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+
+function MePlaceholder() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center px-5 text-center">
+      <div className="grid size-16 place-items-center rounded-full bg-secondary">
+        <User className="size-7 text-muted-foreground" />
+      </div>
+      <h2 className="mt-4 text-base font-semibold">我的 · 沉淀故事</h2>
+      <p className="mt-2 text-sm text-muted-foreground">你的故事还在沉淀中，过几天再来看看吧。</p>
+    </div>
+  );
+}
+
+function TabBar({
+  active,
+  onChange,
+}: {
+  active: TabKey;
+  onChange: (t: TabKey) => void;
+}) {
+  const items: { key: TabKey; icon: typeof Home; label: string; disabled?: boolean }[] = [
+    { key: "house", icon: Home, label: "小屋" },
+    { key: "relationships", icon: Heart, label: "心动 · 观察关系" },
+    { key: "me", icon: User, label: "我的 · 沉淀故事", disabled: true },
   ];
+
   return (
     <nav className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-border bg-card/90 backdrop-blur">
       <ul className="flex items-stretch justify-around px-2 py-2">
-        {items.map((it) => (
-          <li key={it.label}>
-            <button
-              disabled={!it.active}
-              aria-disabled={!it.active}
-              className={`flex flex-col items-center gap-1 rounded-xl py-1 px-2 text-[11px] ${
-                it.active ? "text-primary" : "text-muted-foreground/50 cursor-not-allowed"
-              }`}
-            >
-              <span className="relative">
-                <it.icon className="size-5" />
-                {!it.active && (
-                  <Lock className="absolute -right-2 -top-1 size-2.5" aria-hidden />
-                )}
-              </span>
-              {it.label}
-            </button>
-          </li>
-        ))}
+        {items.map((it) => {
+          const isActive = active === it.key && !it.disabled;
+          return (
+            <li key={it.key}>
+              <button
+                disabled={it.disabled}
+                onClick={() => !it.disabled && onChange(it.key)}
+                aria-disabled={it.disabled}
+                className={`flex flex-col items-center gap-1 rounded-xl py-1 px-2 text-[11px] ${
+                  isActive
+                    ? "text-primary"
+                    : it.disabled
+                    ? "text-muted-foreground/50 cursor-not-allowed"
+                    : "text-muted-foreground"
+                }`}
+              >
+                <span className="relative">
+                  <it.icon className="size-5" />
+                  {it.disabled && (
+                    <Lock className="absolute -right-2 -top-1 size-2.5" aria-hidden />
+                  )}
+                </span>
+                {it.label}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
