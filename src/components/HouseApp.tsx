@@ -11,6 +11,8 @@ import {
 import {
   scenes,
   members,
+  hotspots,
+  microEvents,
   dateCard,
   genderOf,
   avatarOf,
