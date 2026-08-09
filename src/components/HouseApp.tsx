@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Check,
   ChevronRight,
+  MessageCircle,
 } from "lucide-react";
 import {
   scenes,
@@ -21,6 +22,8 @@ import {
   meAvatar,
   profile,
   storyTimeline,
+  chatTopics,
+  replyOf,
   type Scene,
   type Choice,
   type Member,
@@ -266,7 +269,23 @@ function HomeView({
         每天 3~5 个关键事件 · 每天 1 次核心选择
       </p>
 
-      {who && <MemberSheet member={who} onClose={() => setWho(null)} onOpen={onOpen} />}
+      {who && !chatWith && (
+        <MemberSheet
+          member={who}
+          onClose={() => setWho(null)}
+          onOpen={onOpen}
+          onChat={() => setChatWith(who)}
+        />
+      )}
+      {chatWith && (
+        <ChatSheet
+          member={chatWith}
+          onClose={() => {
+            setChatWith(null);
+            setWho(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -275,10 +294,12 @@ function MemberSheet({
   member,
   onClose,
   onOpen,
+  onChat,
 }: {
   member: Member;
   onClose: () => void;
   onOpen: (s: Scene) => void;
+  onChat: () => void;
 }) {
   const room = member.where.slice(1);
   const scene = scenes.find((s) => s.place === room);
