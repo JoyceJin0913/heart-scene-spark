@@ -502,7 +502,7 @@ function RelationshipGraph() {
         return (
           <button
             key={n.name}
-            ref={(el) => nodeRefs.current.set(n.name, el)}
+            ref={(el) => { nodeRefs.current.set(n.name, el); }}
             style={{ top: n.top, left: n.left, transform: "translate(-50%, -50%)" }}
             className="absolute flex flex-col items-center gap-1"
           >
