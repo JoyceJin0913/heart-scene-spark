@@ -472,7 +472,9 @@ function SceneView({
         )}
         <div className="h-8" />
       </div>
+      )}
     </div>
+
   );
 }
 
