@@ -58,6 +58,8 @@ export function HouseApp() {
   const [chatLog, setChatLog] = useState<ChatLogEntry[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [progress, setProgress] = useState<StoryProgress>({ index: 0, done: false });
+  const [inRoom, setInRoom] = useState(false);
+  const [dayEndSeen, setDayEndSeen] = useState(false);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -74,6 +76,8 @@ export function HouseApp() {
   };
 
   const inStory = hydrated && tab === "house" && !progress.done;
+  const talkedCount = new Set(chatLog.map((c) => c.name)).size;
+  const showDayEnd = tab === "house" && !inStory && !inRoom && !dayEndSeen && talkedCount >= 3;
 
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
@@ -87,6 +91,8 @@ export function HouseApp() {
               onStep={(i) => saveProgress({ index: i, done: false })}
               onFinish={() => saveProgress({ index: storySequence.length - 1, done: true })}
             />
+          ) : inRoom ? (
+            <RoomNight chatLog={chatLog} onLeave={() => setInRoom(false)} />
           ) : (
             <HouseContent
               openScene={openScene}
@@ -97,15 +103,56 @@ export function HouseApp() {
               onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
               onBack={() => setOpenScene(null)}
               onReplay={() => saveProgress({ index: 0, done: false })}
+              canEnterRoom={talkedCount >= 3}
+              onEnterRoom={() => {
+                setOpenScene(null);
+                setInRoom(true);
+              }}
             />
           ))}
         {tab === "relationships" && <RelationshipsView />}
         {tab === "me" && <MeView />}
       </div>
       {!inStory && <TabBar active={tab} onChange={setTab} />}
+
+      {showDayEnd && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-background/85 px-8 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl glass-card p-6 text-center">
+            <p className="text-[11px] tracking-[0.3em] text-muted-foreground">23:00</p>
+            <h2 className="mt-3 text-lg font-medium">今天结束了</h2>
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              你已经和 3 个人聊过天。灯一盏盏灭掉，
+              <br />
+              回到自己的房间，把今天收个尾。
+            </p>
+            <ul className="mt-4 space-y-1.5 text-left text-xs text-muted-foreground">
+              <li>· 发送心动短信</li>
+              <li>· 玩心动小游戏增加心动值</li>
+              <li>· 复盘思考</li>
+            </ul>
+            <button
+              onClick={() => {
+                setDayEndSeen(true);
+                setOpenScene(null);
+                setInRoom(true);
+              }}
+              className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
+            >
+              回到自己的房间
+            </button>
+            <button
+              onClick={() => setDayEndSeen(true)}
+              className="mt-2 w-full py-2 text-xs text-muted-foreground"
+            >
+              再在小屋待一会儿
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 /** 主线：三件事依次播放，中间用文字淡入淡出过渡，播完自动进入自由小屋 */
 function StoryFlow({
