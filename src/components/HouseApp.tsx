@@ -11,6 +11,8 @@ import {
 import {
   scenes,
   members,
+  hotspots,
+  microEvents,
   dateCard,
   genderOf,
   avatarOf,
@@ -90,6 +92,8 @@ function HouseContent({
   );
 }
 
+const ROOMS = ["客厅", "厨房", "阳台"] as const;
+
 function HomeView({
   picked,
   coreDone,
@@ -100,8 +104,10 @@ function HomeView({
   onOpen: (s: Scene) => void;
 }) {
   const coreScene = scenes.find((s) => s.core)!;
+  const observeScenes = scenes.filter((s) => !s.core);
   const hero = scenes[1]!;
-  const done = Object.keys(picked).length;
+  const [who, setWho] = useState<Member | null>(null);
+  const total = scenes.length + microEvents.length;
 
   return (
     <div>
@@ -116,7 +122,7 @@ function HomeView({
           alt="小屋客厅的夜晚，成员们围坐聊天"
           width={1024}
           height={1280}
-          className="h-[380px] w-full object-cover"
+          className="h-[300px] w-full object-cover"
         />
         <div className="absolute inset-0 bg-night-fade" />
 
@@ -125,42 +131,87 @@ function HomeView({
           <p className="mt-1 text-sm text-foreground/80">20:37 🌙</p>
         </div>
 
-        {members.map((m) => (
-          <button
-            key={m.name}
-            onClick={() => onOpen(scenes.find((s) => s.place === m.where.slice(1)) ?? hero)}
-            style={{ top: m.top, left: m.left }}
-            className="absolute inline-flex items-center gap-1.5 rounded-full glass-card px-2.5 py-1 text-[11px] text-foreground transition-transform hover:scale-105 active:scale-95"
-          >
-            <span
-              className={`size-2 rounded-full ${m.gender === "m" ? "bg-male" : "bg-female"}`}
-              aria-hidden
-            />
-            <span className={m.gender === "m" ? "text-male" : "text-female"}>{m.name}</span>
-            <span className="text-foreground/70">{m.where}</span>
-          </button>
-        ))}
+        {hotspots.map((h) => {
+          const s = scenes.find((x) => x.id === h.sceneId);
+          if (!s) return null;
+          return (
+            <button
+              key={h.sceneId}
+              onClick={() => onOpen(s)}
+              style={{ top: h.top, left: h.left }}
+              className="absolute inline-flex items-center gap-2 rounded-full glass-card px-3 py-1.5 text-xs text-foreground transition-transform hover:scale-105 active:scale-95"
+            >
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/70" />
+                <span className="relative inline-flex size-2 rounded-full bg-primary" />
+              </span>
+              {h.label}
+            </button>
+          );
+        })}
       </section>
 
+      {/* 成员名单：按房间分组，图外展示 */}
       <section className="mt-4 px-5">
-        <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-male" aria-hidden /> 男生 5
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-female" aria-hidden /> 女生 5
-          </span>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium">此刻他们在哪</h2>
+          <span className="text-[11px] text-muted-foreground">5 男 · 5 女</span>
+        </div>
+        <div className="mt-3 space-y-2.5">
+          {ROOMS.map((room) => {
+            const list = members.filter((m) => m.where.slice(1) === room);
+            return (
+              <div key={room} className="flex items-center gap-3">
+                <span className="w-10 shrink-0 text-[11px] text-muted-foreground">{room}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {list.map((m) => (
+                    <button
+                      key={m.name}
+                      onClick={() => setWho(m)}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                        m.gender === "m"
+                          ? "border-male/40 text-male hover:bg-male/10"
+                          : "border-female/40 text-female hover:bg-female/10"
+                      }`}
+                    >
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
+      {/* 今日核心选择 */}
+      <section className="mt-6 px-5">
+        <button
+          onClick={() => onOpen(coreScene)}
+          className="w-full overflow-hidden rounded-2xl border border-primary/40 bg-romance/10 p-4 text-left shadow-glow transition-transform active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-romance px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+              今日核心选择
+            </span>
+            <span className="text-[11px] text-muted-foreground">每天仅 1 次</span>
+          </div>
+          <p className="mt-2 text-base font-semibold">{coreScene.title}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {coreScene.place} · {coreScene.time} · {coreDone ? "已做出选择" : "等待你的判断"}
+          </p>
+        </button>
+      </section>
+
+      {/* 观察事件 */}
       <section className="mt-6 px-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-base font-semibold">今天发生了 {scenes.length} 件事</h2>
-          <span className="text-xs text-muted-foreground">已参与 {done}/{scenes.length}</span>
+          <h2 className="text-base font-semibold">今天发生了 {total} 件事</h2>
+          <span className="text-xs text-muted-foreground">观察 · 无需选择</span>
         </div>
 
         <ul className="mt-3 space-y-3">
-          {scenes.map((s) => (
+          {observeScenes.map((s) => (
             <li key={s.id}>
               <button
                 onClick={() => onOpen(s)}
@@ -182,16 +233,21 @@ function HomeView({
                 </div>
                 {picked[s.id] ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-[11px] text-accent">
-                    <Check className="size-3" /> 已选择
+                    <Check className="size-3" /> 已看
                   </span>
                 ) : (
-                  s.core && (
-                    <span className="rounded-full bg-romance px-2 py-1 text-[11px] font-medium text-primary-foreground">
-                      核心
-                    </span>
-                  )
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
                 )}
               </button>
+            </li>
+          ))}
+          {microEvents.map((e) => (
+            <li
+              key={e.time}
+              className="flex items-start gap-3 rounded-2xl border border-border/60 px-3 py-2.5"
+            >
+              <span className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">{e.time}</span>
+              <p className="text-xs leading-relaxed text-muted-foreground">{e.text}</p>
             </li>
           ))}
         </ul>
@@ -206,20 +262,91 @@ function HomeView({
         </div>
       </section>
 
-      <div className="px-5 py-6">
+      <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
+        每天 3~5 个关键事件 · 每天 1 次核心选择
+      </p>
+
+      {who && <MemberSheet member={who} onClose={() => setWho(null)} onOpen={onOpen} />}
+    </div>
+  );
+}
+
+function MemberSheet({
+  member,
+  onClose,
+  onOpen,
+}: {
+  member: Member;
+  onClose: () => void;
+  onOpen: (s: Scene) => void;
+}) {
+  const room = member.where.slice(1);
+  const scene = scenes.find((s) => s.place === room);
+  const rel = relationshipCards.find((r) => r.name === member.name);
+  const tone = member.gender === "m" ? "text-male" : "text-female";
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-background/70 backdrop-blur-sm">
+      <button className="absolute inset-0" aria-label="关闭" onClick={onClose} />
+      <div className="relative mx-auto w-full max-w-md rounded-t-3xl border-t border-border bg-card p-5 pb-28">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
+        <div className="flex items-center gap-3">
+          {member.avatar ? (
+            <img
+              src={member.avatar}
+              alt={member.name}
+              className="size-14 rounded-full object-cover"
+            />
+          ) : (
+            <span
+              className={`grid size-14 place-items-center rounded-full bg-secondary text-lg ${tone}`}
+            >
+              {member.name[0]}
+            </span>
+          )}
+          <div>
+            <p className={`text-lg font-semibold ${tone}`}>{member.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {member.where} · {member.gender === "m" ? "男生" : "女生"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-secondary/50 p-3">
+          <p className="text-[11px] text-muted-foreground">今日互动</p>
+          <p className="mt-1 text-sm">{rel ? rel.desc : "你今天还没有和 TA 说过话"}</p>
+          {rel && <p className="mt-1 text-[11px] text-muted-foreground">{rel.meta}</p>}
+        </div>
+
+        {rel && (
+          <div className="mt-3 flex items-center gap-2">
+            <Heart className="size-4 text-primary" />
+            <span className="text-sm">心动值 {rel.value}</span>
+          </div>
+        )}
+
+        {scene && (
+          <button
+            onClick={() => {
+              onClose();
+              onOpen(scene);
+            }}
+            className="mt-5 w-full rounded-full bg-romance py-3 text-sm font-semibold text-primary-foreground"
+          >
+            查看 TA 所在的事件 · {scene.title}
+          </button>
+        )}
         <button
-          onClick={() => onOpen(coreScene)}
-          className="w-full rounded-full bg-romance py-4 text-base font-semibold text-primary-foreground shadow-glow transition-transform active:scale-[0.98]"
+          onClick={onClose}
+          className="mt-2 w-full rounded-full border border-border py-3 text-sm text-muted-foreground"
         >
-          {coreDone ? "回顾今天的核心选择" : "去看看"}
+          关闭
         </button>
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">
-          每天 3~5 个关键事件 · 每天 1 次核心选择
-        </p>
       </div>
     </div>
   );
 }
+
 
 function SceneView({
   scene,
@@ -271,9 +398,28 @@ function SceneView({
         </div>
       </div>
 
+      {scene.observe ? (
+        <div className="px-5 pt-6">
+          <p className="text-xs tracking-widest text-accent">观察记录</p>
+          <p className="mt-2 text-sm leading-relaxed text-foreground/90">{scene.outcome}</p>
+          <button
+            onClick={() => {
+              onPick(scene.choices[0]!.key);
+              onBack();
+            }}
+            className="mt-6 w-full rounded-full bg-secondary py-3.5 text-sm font-medium transition-transform active:scale-[0.98]"
+          >
+            继续观察
+          </button>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            这是观察事件，今天的选择留给核心时刻
+          </p>
+        </div>
+      ) : (
       <div className="px-5 pt-6">
         <h2 className="text-lg font-semibold text-primary">{scene.question}</h2>
         <p className="mt-1 text-xs text-muted-foreground">{scene.hint}</p>
+
 
         <div className="mt-4 space-y-3">
           {scene.choices.map((c, i) => {
@@ -326,7 +472,9 @@ function SceneView({
         )}
         <div className="h-8" />
       </div>
+      )}
     </div>
+
   );
 }
 

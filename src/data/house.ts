@@ -24,11 +24,35 @@ export type Scene = {
   title: string;
   image: string;
   core?: boolean;
+  /** 观察事件：只看剧情，不做选择 */
+  observe?: boolean;
+  /** 观察事件结尾的一句旁白 */
+  outcome?: string;
   dialogue: { who: string; line: string }[];
   question: string;
   hint: string;
   choices: Choice[];
 };
+
+/** 图上标出的"此刻正在发生"的热点 */
+export type Hotspot = {
+  sceneId: string;
+  label: string;
+  top: string;
+  left: string;
+};
+
+export const hotspots: Hotspot[] = [
+  { sceneId: "kitchen", label: "厨房 · 有人在说话", top: "26%", left: "58%" },
+  { sceneId: "balcony", label: "阳台 · 一个人站着", top: "62%", left: "10%" },
+];
+
+/** 不需要交互的碎片，只用来铺节奏 */
+export const microEvents: { time: string; text: string }[] = [
+  { time: "19:20", text: "白露把晚餐端上桌，陆野第一个坐下。" },
+  { time: "22:05", text: "夏可在客厅放了首很老的歌，没人换台。" },
+];
+
 
 export type Member = {
   name: string;
@@ -109,6 +133,8 @@ export const scenes: Scene[] = [
     time: "20:37",
     title: "沙发上的第一次分组",
     image: living,
+    observe: true,
+    outcome: "话题被轻轻放下，但每个人都记住了刚才谁看了谁一眼。分组的事，留到明早。",
     dialogue: [
       { who: "苏杳", line: "明天的约会，要不要抽签决定？" },
       { who: "沈知", line: "抽签多没意思，自己选吧。" },
@@ -146,6 +172,8 @@ export const scenes: Scene[] = [
     time: "22:40",
     title: "阳台上的那支烟火",
     image: balcony,
+    observe: true,
+    outcome: "沈知没有追问，只是把烟火递了过去。夜风把话吹散了。",
     dialogue: [
       { who: "沈知", line: "你今天在厨房，是不是有点奇怪？" },
       { who: "温宁", line: "被你看出来了。" },
