@@ -70,18 +70,32 @@ function HomeView({
 
         {members.map((m) => (
           <button
-            key={m.id}
+            key={m.name}
             onClick={() => onOpen(scenes.find((s) => s.place === m.where.slice(1)) ?? hero)}
             style={{ top: m.top, left: m.left }}
-            className="absolute inline-flex items-center gap-2 rounded-full glass-card px-3 py-1.5 text-xs text-foreground transition-transform hover:scale-105 active:scale-95"
+            className="absolute inline-flex items-center gap-1.5 rounded-full glass-card px-2.5 py-1 text-[11px] text-foreground transition-transform hover:scale-105 active:scale-95"
           >
-            <span className="grid size-5 place-items-center rounded-full bg-romance text-[10px] font-bold text-primary-foreground">
-              {m.id}
-            </span>
-            {m.where}
+            <span
+              className={`size-2 rounded-full ${m.gender === "m" ? "bg-male" : "bg-female"}`}
+              aria-hidden
+            />
+            <span className={m.gender === "m" ? "text-male" : "text-female"}>{m.name}</span>
+            <span className="text-foreground/70">{m.where}</span>
           </button>
         ))}
       </section>
+
+      <section className="mt-4 px-5">
+        <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-male" aria-hidden /> 男生 5
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-female" aria-hidden /> 女生 5
+          </span>
+        </div>
+      </section>
+
 
       <section className="mt-6 px-5">
         <div className="flex items-baseline justify-between">
