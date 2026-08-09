@@ -260,6 +260,8 @@ function HouseContent({
   onPick,
   onBack,
   onReplay,
+  canEnterRoom,
+  onEnterRoom,
 }: {
   openScene: Scene | null;
   picked: Picked;
@@ -269,6 +271,8 @@ function HouseContent({
   onPick: (id: string, k: Choice["key"]) => void;
   onBack: () => void;
   onReplay: () => void;
+  canEnterRoom: boolean;
+  onEnterRoom: () => void;
 }) {
   if (openScene) {
     return (
@@ -282,9 +286,18 @@ function HouseContent({
   }
 
   return (
-    <HomeView picked={picked} chatLog={chatLog} onLog={onLog} onOpen={onOpen} onReplay={onReplay} />
+    <HomeView
+      picked={picked}
+      chatLog={chatLog}
+      onLog={onLog}
+      onOpen={onOpen}
+      onReplay={onReplay}
+      canEnterRoom={canEnterRoom}
+      onEnterRoom={onEnterRoom}
+    />
   );
 }
+
 
 
 const ROOMS = ["客厅", "厨房", "阳台"] as const;
