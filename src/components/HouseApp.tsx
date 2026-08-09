@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import {
   scenes,
+  storySequence,
+  storyTransitions,
   members,
   hotspots,
   microEvents,
