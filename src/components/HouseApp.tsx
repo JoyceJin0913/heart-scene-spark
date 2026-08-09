@@ -110,6 +110,8 @@ function HomeView({
   const observeScenes = scenes.filter((s) => !s.core);
   const hero = scenes[1]!;
   const [who, setWho] = useState<Member | null>(null);
+  const [chatWith, setChatWith] = useState<Member | null>(null);
+
   const total = scenes.length + microEvents.length;
 
   return (
