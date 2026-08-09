@@ -132,34 +132,43 @@ function RoomEntry({
   title,
   desc,
   tag,
+  tone = "primary",
   onClick,
 }: {
   icon: React.ReactNode;
   title: string;
   desc: string;
   tag?: string;
+  tone?: "female" | "male" | "primary";
   onClick: () => void;
 }) {
+  const toneClass =
+    tone === "female" ? "bg-female/15 text-female" : tone === "male" ? "bg-male/15 text-male" : "bg-secondary/60 text-primary";
+  const borderClass =
+    tone === "female" ? "border-female/30" : tone === "male" ? "border-male/30" : "border-border";
+
   return (
     <button
       onClick={onClick}
-      className="group flex w-full items-start gap-4 rounded-3xl glass-card p-5 text-left transition-colors hover:bg-secondary/60 active:scale-[0.99]"
+      className={`group flex h-full w-full flex-col items-start gap-3 rounded-3xl border ${borderClass} p-4 text-left transition-colors hover:bg-secondary/60 active:scale-[0.99]`}
     >
-      <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-secondary/60">
+      <span className={`grid size-12 shrink-0 place-items-center rounded-2xl ${toneClass}`}>
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
-          <span className="text-base font-semibold">{title}</span>
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold leading-tight">{title}</span>
           {tag && (
             <span className="rounded-full bg-secondary/70 px-2 py-0.5 text-[10px] text-muted-foreground">
               {tag}
             </span>
           )}
         </span>
-        <span className="mt-1.5 block text-xs leading-relaxed text-muted-foreground">{desc}</span>
+        <span className="mt-2 block text-[11px] leading-relaxed text-muted-foreground">{desc}</span>
       </span>
-      <ChevronRight className="mt-3 size-4 shrink-0 text-muted-foreground" />
+      <span className="mt-auto inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
+        进入 <ChevronRight className="size-3.5" />
+      </span>
     </button>
   );
 }
