@@ -537,8 +537,7 @@ function MeView() {
   return (
     <div className="px-5 pt-8">
       <header className="text-center">
-        <p className="text-xs tracking-[0.25em] text-accent">我的恋综档案</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-[0.2em] text-primary">
+        <h1 className="text-3xl font-semibold tracking-[0.2em] text-primary">
           我的恋综档案
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">记录你的心动旅程</p>
