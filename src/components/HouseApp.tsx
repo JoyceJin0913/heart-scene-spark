@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Check,
   ChevronRight,
+  MessageCircle,
 } from "lucide-react";
 import {
   scenes,
@@ -21,6 +22,8 @@ import {
   meAvatar,
   profile,
   storyTimeline,
+  chatTopics,
+  replyOf,
   type Scene,
   type Choice,
   type Member,
@@ -107,6 +110,8 @@ function HomeView({
   const observeScenes = scenes.filter((s) => !s.core);
   const hero = scenes[1]!;
   const [who, setWho] = useState<Member | null>(null);
+  const [chatWith, setChatWith] = useState<Member | null>(null);
+
   const total = scenes.length + microEvents.length;
 
   return (
@@ -266,7 +271,23 @@ function HomeView({
         每天 3~5 个关键事件 · 每天 1 次核心选择
       </p>
 
-      {who && <MemberSheet member={who} onClose={() => setWho(null)} onOpen={onOpen} />}
+      {who && !chatWith && (
+        <MemberSheet
+          member={who}
+          onClose={() => setWho(null)}
+          onOpen={onOpen}
+          onChat={() => setChatWith(who)}
+        />
+      )}
+      {chatWith && (
+        <ChatSheet
+          member={chatWith}
+          onClose={() => {
+            setChatWith(null);
+            setWho(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -275,10 +296,12 @@ function MemberSheet({
   member,
   onClose,
   onOpen,
+  onChat,
 }: {
   member: Member;
   onClose: () => void;
   onOpen: (s: Scene) => void;
+  onChat: () => void;
 }) {
   const room = member.where.slice(1);
   const scene = scenes.find((s) => s.place === room);
@@ -325,13 +348,22 @@ function MemberSheet({
           </div>
         )}
 
+        <button
+          onClick={onChat}
+          className="mt-5 w-full rounded-full bg-romance py-3 text-sm font-semibold text-primary-foreground"
+        >
+          <span className="inline-flex items-center gap-2">
+            <MessageCircle className="size-4" /> 和 {member.name} 发起对话
+          </span>
+        </button>
+
         {scene && (
           <button
             onClick={() => {
               onClose();
               onOpen(scene);
             }}
-            className="mt-5 w-full rounded-full bg-romance py-3 text-sm font-semibold text-primary-foreground"
+            className="mt-2 w-full rounded-full border border-border py-3 text-sm text-foreground"
           >
             查看 TA 所在的事件 · {scene.title}
           </button>
@@ -346,6 +378,91 @@ function MemberSheet({
     </div>
   );
 }
+
+type ChatMsg = { from: "me" | "ta"; text: string };
+
+function ChatSheet({ member, onClose }: { member: Member; onClose: () => void }) {
+  const tone = member.gender === "m" ? "text-male" : "text-female";
+  const [msgs, setMsgs] = useState<ChatMsg[]>([
+    { from: "ta", text: `（${member.where}）嗯？你怎么过来了。` },
+  ]);
+  const [used, setUsed] = useState<string[]>([]);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs]);
+
+  const send = (t: (typeof chatTopics)[number]) => {
+    setUsed((u) => [...u, t.key]);
+    setMsgs((m) => [...m, { from: "me", text: t.say }]);
+    window.setTimeout(() => {
+      setMsgs((m) => [...m, { from: "ta", text: replyOf(t, member.name) }]);
+    }, 550);
+  };
+
+  const left = chatTopics.filter((t) => !used.includes(t.key));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 backdrop-blur-sm">
+      <button className="absolute inset-0" aria-label="关闭" onClick={onClose} />
+      <div className="relative mx-auto flex h-[80vh] w-full max-w-md flex-col rounded-t-3xl border-t border-border bg-card">
+        <div className="flex items-center gap-3 border-b border-border/60 px-5 py-3">
+          {member.avatar ? (
+            <img src={member.avatar} alt={member.name} className="size-9 rounded-full object-cover" />
+          ) : (
+            <span className={`grid size-9 place-items-center rounded-full bg-secondary text-sm ${tone}`}>
+              {member.name[0]}
+            </span>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className={`text-sm font-semibold ${tone}`}>{member.name}</p>
+            <p className="text-[11px] text-muted-foreground">{member.where} · 正在对话</p>
+          </div>
+          <button onClick={onClose} className="text-xs text-muted-foreground">
+            结束
+          </button>
+        </div>
+
+        <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+          {msgs.map((m, i) => (
+            <div key={i} className={`flex ${m.from === "me" ? "justify-end" : "justify-start"}`}>
+              <p
+                className={`max-w-[78%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                  m.from === "me"
+                    ? "bg-romance text-primary-foreground"
+                    : "bg-secondary text-foreground"
+                }`}
+              >
+                {m.text}
+              </p>
+            </div>
+          ))}
+          <div ref={endRef} />
+        </div>
+
+        <div className="space-y-2 border-t border-border/60 px-5 pb-8 pt-3">
+          {left.length ? (
+            left.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => send(t)}
+                className="w-full rounded-full border border-border px-4 py-2.5 text-left text-xs transition-colors hover:bg-secondary/60"
+              >
+                {t.label} · 「{t.say}」
+              </button>
+            ))
+          ) : (
+            <p className="py-2 text-center text-[11px] text-muted-foreground">
+              今天能聊的都聊完了，明天再来找 TA。
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 
 function SceneView({
