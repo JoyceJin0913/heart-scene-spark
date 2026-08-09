@@ -638,27 +638,16 @@ function TabBar({
     <nav className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-border bg-card/90 backdrop-blur">
       <ul className="flex items-stretch justify-around px-2 py-2">
         {items.map((it) => {
-          const isActive = active === it.key && !it.disabled;
+          const isActive = active === it.key;
           return (
             <li key={it.key}>
               <button
-                disabled={it.disabled}
-                onClick={() => !it.disabled && onChange(it.key)}
-                aria-disabled={it.disabled}
+                onClick={() => onChange(it.key)}
                 className={`flex flex-col items-center gap-1 rounded-xl py-1 px-2 text-[11px] ${
-                  isActive
-                    ? "text-primary"
-                    : it.disabled
-                    ? "text-muted-foreground/50 cursor-not-allowed"
-                    : "text-muted-foreground"
+                  isActive ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <span className="relative">
-                  <it.icon className="size-5" />
-                  {it.disabled && (
-                    <Lock className="absolute -right-2 -top-1 size-2.5" aria-hidden />
-                  )}
-                </span>
+                <it.icon className="size-5" />
                 {it.label}
               </button>
             </li>
