@@ -359,3 +359,81 @@ export const chatTopics: ChatTopic[] = [
 
 export const replyOf = (topic: ChatTopic, name: string): string =>
   topic.replyBy?.[name] ?? topic.reply;
+
+/** 玩家性别（决定"心动观察"里出现的嘉宾） */
+export const playerGender: Gender = "m";
+
+/** 一次心动瞬间 */
+export type HeartMoment = {
+  day: string;
+  time: string;
+  place: string;
+  text: string;
+  delta: number;
+};
+
+/** 与某位嘉宾的心动档案 */
+export type Affinity = {
+  name: string;
+  value: number;
+  status: string;
+  moments: HeartMoment[];
+};
+
+export const affinities: Affinity[] = [
+  {
+    name: "温宁",
+    value: 72,
+    status: "今天在厨房聊了 12 分钟",
+    moments: [
+      { day: "Day 1", time: "20:10", place: "客厅", text: "自我介绍时，她说的爱好和你一样。", delta: 12 },
+      { day: "Day 2", time: "12:30", place: "餐桌", text: "她把最后一块蛋糕留给了你。", delta: 8 },
+      { day: "Day 3", time: "22:15", place: "阳台", text: "你们同时沉默了很久，谁都没走。", delta: 16 },
+      { day: "Day 4", time: "21:13", place: "厨房", text: "「等我想明白了，第一个告诉你。」", delta: 14 },
+    ],
+  },
+  {
+    name: "许佳",
+    value: 58,
+    status: "晚餐时她一直在看你",
+    moments: [
+      { day: "Day 1", time: "21:40", place: "客厅", text: "她主动坐到了你旁边。", delta: 10 },
+      { day: "Day 3", time: "16:20", place: "院子", text: "她记得你说过怕晒，递了顶帽子。", delta: 12 },
+      { day: "Day 4", time: "18:47", place: "餐桌", text: "她偷偷看了你三次，被你发现一次。", delta: 9 },
+    ],
+  },
+  {
+    name: "苏杳",
+    value: 34,
+    status: "今天你们没有说话",
+    moments: [
+      { day: "Day 2", time: "10:05", place: "厨房", text: "一起洗碗，聊了几句无关紧要的话。", delta: 6 },
+      { day: "Day 3", time: "19:50", place: "客厅", text: "她提议抽签，眼神却没看你。", delta: -4 },
+    ],
+  },
+  {
+    name: "白露",
+    value: 26,
+    status: "只在饭桌上打过照面",
+    moments: [
+      { day: "Day 2", time: "19:20", place: "餐桌", text: "她端菜时说了句「小心烫」。", delta: 8 },
+    ],
+  },
+  {
+    name: "夏可",
+    value: 18,
+    status: "还没有真正开始",
+    moments: [
+      { day: "Day 4", time: "22:05", place: "客厅", text: "她放了首很老的歌，你多听了两遍。", delta: 5 },
+    ],
+  },
+];
+
+/** 心动值随天数的变化曲线（由瞬间累计而来） */
+export const heartTrend = (a: Affinity): { day: string; value: number }[] => {
+  let v = a.value - a.moments.reduce((s, m) => s + m.delta, 0);
+  return a.moments.map((m) => {
+    v += m.delta;
+    return { day: m.day, value: v };
+  });
+};
