@@ -242,7 +242,7 @@ function SceneView({
           alt={scene.title}
           width={1024}
           height={1280}
-          className="h-[340px] w-full object-cover"
+          className="aspect-[4/5] w-full object-cover"
         />
         <div className="absolute inset-0 bg-night-fade" />
         <div className="absolute inset-x-0 top-6 flex items-center px-4">
