@@ -49,7 +49,7 @@ export function HouseApp() {
           />
         )}
         {tab === "relationships" && <RelationshipsView />}
-        {tab === "me" && <MePlaceholder />}
+        {tab === "me" && <MeView />}
       </div>
       <TabBar active={tab} onChange={setTab} />
     </div>
@@ -534,14 +534,89 @@ function RelationshipGraph() {
 }
 
 
-function MePlaceholder() {
+function MeView() {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-5 text-center">
-      <div className="grid size-16 place-items-center rounded-full bg-secondary">
-        <User className="size-7 text-muted-foreground" />
-      </div>
-      <h2 className="mt-4 text-base font-semibold">我的 · 沉淀故事</h2>
-      <p className="mt-2 text-sm text-muted-foreground">你的故事还在沉淀中，过几天再来看看吧。</p>
+    <div className="px-5 pt-8">
+      <header className="text-center">
+        <p className="text-xs tracking-[0.25em] text-accent">我的恋综档案</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-[0.2em] text-primary">
+          我的恋综档案
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">记录你的心动旅程</p>
+      </header>
+
+      <section className="mt-6 rounded-3xl glass-card p-5">
+        <div className="flex items-center gap-4">
+          <img
+            src={meAvatar}
+            alt="你的头像"
+            width={512}
+            height={512}
+            className="size-16 rounded-full border-2 border-card object-cover shadow"
+          />
+          <div className="flex-1">
+            <p className="text-lg font-semibold text-primary">{profile.name}</p>
+            <p className="text-xs text-muted-foreground">{profile.day}</p>
+          </div>
+          <div className="flex gap-3">
+            <button className="grid size-9 place-items-center rounded-full bg-secondary text-muted-foreground">
+              <span className="text-sm">♀</span>
+            </button>
+            <button className="grid size-9 place-items-center rounded-full bg-secondary text-muted-foreground">
+              <span className="text-sm">⚙</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-2xl bg-secondary/60 p-3">
+            <p className="text-xs text-muted-foreground">心动对象</p>
+            <p className="mt-1 text-lg font-semibold text-primary">{profile.target}</p>
+          </div>
+          <div className="rounded-2xl bg-secondary/60 p-3">
+            <p className="text-xs text-muted-foreground">心动值</p>
+            <p className="mt-1 text-lg font-semibold text-primary">{profile.value}</p>
+          </div>
+          <div className="rounded-2xl bg-secondary/60 p-3">
+            <p className="text-xs text-muted-foreground">戳心时刻</p>
+            <p className="mt-1 text-lg font-semibold text-primary">{profile.moments}刻</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-5">
+        <div className="flex items-baseline justify-between px-1">
+          <h2 className="text-base font-semibold">我的故事</h2>
+        </div>
+
+        <div className="relative mt-3 rounded-3xl glass-card p-5">
+          <div className="absolute left-8 top-5 bottom-5 w-px bg-border" aria-hidden />
+
+          <ul className="relative space-y-5">
+            {storyTimeline.map((item, index) => (
+              <li key={item.day} className="flex items-center gap-4">
+                <span
+                  className={`relative z-10 grid size-3 place-items-center rounded-full ${
+                    index === storyTimeline.length - 1 ? "bg-romance" : "bg-border"
+                  }`}
+                  aria-hidden
+                />
+                <span className="w-12 text-xs text-muted-foreground">{item.day}</span>
+                <span className={`text-sm ${index === storyTimeline.length - 1 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                  {item.title}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <button className="mt-5 flex w-full items-center justify-center gap-1 rounded-2xl bg-secondary/70 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+            回顾全部故事
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      </section>
+
+      <div className="h-6" />
     </div>
   );
 }
@@ -553,10 +628,10 @@ function TabBar({
   active: TabKey;
   onChange: (t: TabKey) => void;
 }) {
-  const items: { key: TabKey; icon: typeof Home; label: string; disabled?: boolean }[] = [
+  const items: { key: TabKey; icon: typeof Home; label: string }[] = [
     { key: "house", icon: Home, label: "小屋" },
     { key: "relationships", icon: Heart, label: "心动 · 观察关系" },
-    { key: "me", icon: User, label: "我的 · 沉淀故事", disabled: true },
+    { key: "me", icon: User, label: "我的 · 沉淀故事" },
   ];
 
   return (
