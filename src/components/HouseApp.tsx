@@ -308,12 +308,17 @@ function HomeView({
   onLog,
   onOpen,
   onReplay,
+  canEnterRoom,
+  onEnterRoom,
 }: {
   picked: Picked;
   chatLog: ChatLogEntry[];
   onLog: (e: ChatLogEntry) => void;
   onOpen: (s: Scene) => void;
   onReplay: () => void;
+  canEnterRoom: boolean;
+  onEnterRoom: () => void;
+
 }) {
   const allScenes = scenes;
   const hero = scenes[1]!;
