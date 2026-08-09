@@ -101,10 +101,16 @@
   --sidebar-border: oklch(0.34 0.04 18 / 60%);
   --sidebar-ring: oklch(0.72 0.15 12);
 
+  --male: oklch(0.68 0.13 245);
+  --male-foreground: oklch(0.98 0.01 240);
+  --female: oklch(0.76 0.13 350);
+  --female-foreground: oklch(0.2 0.03 340);
+
   --gradient-romance: linear-gradient(135deg, oklch(0.72 0.15 12), oklch(0.78 0.12 40));
   --gradient-night: linear-gradient(180deg, oklch(0.16 0.028 20 / 0%), oklch(0.14 0.03 18 / 95%));
   --shadow-glow: 0 18px 50px -18px oklch(0.72 0.15 12 / 55%);
 }
+
 
 
 .dark {
