@@ -275,7 +275,7 @@ function HomeView({
       </section>
 
       <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
-        每天 3~5 个关键事件 · 每天 1 次核心选择
+        每天 3~5 个关键事件 · 私聊会留下记录
       </p>
 
       {who && !chatWith && (
@@ -289,11 +289,13 @@ function HomeView({
       {chatWith && (
         <ChatSheet
           member={chatWith}
+          onLog={onLog}
           onClose={() => {
             setChatWith(null);
             setWho(null);
           }}
         />
+
       )}
     </div>
   );
