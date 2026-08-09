@@ -860,61 +860,47 @@ function SceneView({
 }
 
 function RelationshipsView() {
-  const [subTab, setSubTab] = useState<"moments" | "dynamics">("moments");
+  const [openName, setOpenName] = useState<string | null>(null);
+  const list = affinities.filter((a) => genderOf(a.name) !== playerGender);
+  const open = list.find((a) => a.name === openName) ?? null;
+
+  if (open) return <AffinityDetail affinity={open} onBack={() => setOpenName(null)} />;
 
   return (
     <div className="px-5 pt-8">
       <header className="text-center">
-        <p className="text-xs tracking-widest text-accent">关系</p>
-        <h1 className="mt-1 text-2xl font-semibold text-primary">关系</h1>
-        <p className="mt-2 text-sm text-muted-foreground">你们之间，发生了什么？</p>
+        <p className="text-xs tracking-widest text-accent">你的视角</p>
+        <h1 className="mt-1 text-2xl font-semibold text-primary">心动观察</h1>
+        <p className="mt-2 text-sm text-muted-foreground">你和 TA 们之间，心动值到哪了？</p>
       </header>
 
-      <div className="mt-6 flex items-center justify-center gap-6 text-sm">
-        <button
-          onClick={() => setSubTab("moments")}
-          className={`pb-1 transition-colors ${
-            subTab === "moments"
-              ? "border-b-2 border-primary font-medium text-primary"
-              : "text-muted-foreground"
-          }`}
-        >
-          心动瞬间
-        </button>
-        <button
-          onClick={() => setSubTab("dynamics")}
-          className={`pb-1 transition-colors ${
-            subTab === "dynamics"
-              ? "border-b-2 border-primary font-medium text-primary"
-              : "text-muted-foreground"
-          }`}
-        >
-          关系动态
-        </button>
-      </div>
-
-      {subTab === "moments" ? (
-        <div className="mt-5 space-y-3">
-          {relationshipCards.map((card) => (
-            <RelationshipCard key={card.name} card={card} />
-          ))}
-        </div>
-      ) : (
-        <div className="mt-5 rounded-2xl glass-card p-4 text-center">
-          <p className="text-sm text-muted-foreground">关系动态将在明天的约会后更新。</p>
-        </div>
-      )}
-
-      <section className="mt-8">
-        <h2 className="text-base font-semibold">关系走向</h2>
-        <div className="relative mt-4 h-72 rounded-3xl glass-card overflow-hidden">
-          <RelationshipGraph />
-        </div>
-      </section>
-
-      <div className="mt-4 flex items-center justify-center gap-1 text-sm text-muted-foreground">
-        <span>查看完整关系图</span>
-        <ChevronRight className="size-4" />
+      <div className="mt-6 space-y-3">
+        {list.map((a) => (
+          <button
+            key={a.name}
+            onClick={() => setOpenName(a.name)}
+            className="flex w-full items-center gap-4 rounded-2xl glass-card p-3 text-left transition-transform active:scale-[0.99]"
+          >
+            <Avatar name={a.name} size={64} className="size-16 rounded-2xl" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between">
+                <span
+                  className={`text-sm font-semibold ${
+                    genderOf(a.name) === "f" ? "text-female" : "text-male"
+                  }`}
+                >
+                  {a.name}
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  心动值 <span className="text-romance">{a.value}</span>
+                </span>
+              </div>
+              <p className="mt-1 truncate text-sm text-foreground">{a.status}</p>
+              <HeartBar value={a.value} />
+            </div>
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+          </button>
+        ))}
       </div>
 
       <div className="h-8" />
@@ -922,144 +908,125 @@ function RelationshipsView() {
   );
 }
 
-function RelationshipCard({ card }: { card: { name: string; value: number; desc: string; meta: string; active: boolean } }) {
-  const member = members.find((m) => m.name === card.name) as Member;
-  const avatar = avatarOf(card.name);
-  const isFemale = member.gender === "f";
-
+function HeartBar({ value }: { value: number }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl glass-card p-3">
-      <div className="relative shrink-0">
-        {avatar ? (
-          <img
-            src={avatar}
-            alt={card.name}
-            loading="lazy"
-            width={64}
-            height={64}
-            className="size-16 rounded-2xl object-cover"
-          />
-        ) : (
-          <div className="grid size-16 place-items-center rounded-2xl bg-secondary text-lg font-medium">
-            {card.name[0]}
-          </div>
-        )}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className={`text-sm font-semibold ${isFemale ? "text-female" : "text-male"}`}>
-              {card.name}
-            </span>
-          </div>
-          <span className="text-[11px] text-muted-foreground">
-            心动值 <span className={card.active ? "text-female" : "text-muted-foreground"}>{card.value}</span>
-          </span>
-        </div>
-
-        <p className="mt-1 text-sm text-foreground">{card.desc}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{card.meta}</p>
-      </div>
-
-      <Heart
-        className={`size-5 shrink-0 ${card.active ? "fill-female text-female" : "text-muted-foreground"}`}
-        strokeWidth={card.active ? 1.5 : 2}
+    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+      <div
+        className="h-full rounded-full bg-romance transition-all"
+        style={{ width: `${Math.max(4, Math.min(100, value))}%` }}
       />
     </div>
   );
 }
 
-function RelationshipGraph() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const nodeRefs = useRef(new Map<string, HTMLButtonElement | null>());
-  const [lines, setLines] = useState<
-    { x1: number; y1: number; x2: number; y2: number }[]
-  >([]);
-
-  const updateLines = () => {
-    const container = containerRef.current;
-    if (!container) return;
-    const cRect = container.getBoundingClientRect();
-    const next = relationshipGraph.edges
-      .map(([a, b]) => {
-        const aEl = nodeRefs.current.get(a);
-        const bEl = nodeRefs.current.get(b);
-        if (!aEl || !bEl) return null;
-        const aRect = aEl.getBoundingClientRect();
-        const bRect = bEl.getBoundingClientRect();
-        return {
-          x1: aRect.left + aRect.width / 2 - cRect.left,
-          y1: aRect.top + aRect.height / 2 - cRect.top,
-          x2: bRect.left + bRect.width / 2 - cRect.left,
-          y2: bRect.top + bRect.height / 2 - cRect.top,
-        };
-      })
-      .filter((x): x is { x1: number; y1: number; x2: number; y2: number } => x !== null);
-    setLines(next);
-  };
-
-  useEffect(() => {
-    const raf = requestAnimationFrame(updateLines);
-    const onResize = () => updateLines();
-    window.addEventListener("resize", onResize);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", onResize);
-    };
-  }, []);
-
+function Avatar({
+  name,
+  size,
+  className,
+}: {
+  name: string;
+  size: number;
+  className: string;
+}) {
+  const avatar = avatarOf(name);
+  if (avatar) {
+    return (
+      <img
+        src={avatar}
+        alt={name}
+        loading="lazy"
+        width={size}
+        height={size}
+        className={`${className} object-cover`}
+      />
+    );
+  }
   return (
-    <div ref={containerRef} className="relative h-full w-full">
-      <svg className="absolute inset-0 h-full w-full pointer-events-none">
-        {lines.map((l, i) => (
-          <line
-            key={i}
-            x1={l.x1}
-            y1={l.y1}
-            x2={l.x2}
-            y2={l.y2}
-            stroke="currentColor"
-            className="text-border"
-            strokeWidth="1.5"
-          />
-        ))}
-      </svg>
-
-      {relationshipGraph.nodes.map((n) => {
-        const member = members.find((m) => m.name === n.name)!;
-        const avatar = avatarOf(n.name);
-
-        return (
-          <button
-            key={n.name}
-            ref={(el) => { nodeRefs.current.set(n.name, el); }}
-            style={{ top: n.top, left: n.left, transform: "translate(-50%, -50%)" }}
-            className="absolute flex flex-col items-center gap-1"
-          >
-            {avatar ? (
-              <img
-                src={avatar}
-                alt={n.name}
-                loading="lazy"
-                width={56}
-                height={56}
-                className="size-14 rounded-full border-2 border-card object-cover shadow"
-              />
-            ) : (
-              <div className="grid size-14 place-items-center rounded-full border-2 border-card bg-secondary text-sm font-medium shadow">
-                {n.name[0]}
-              </div>
-            )}
-            <span className={`text-xs ${member.gender === "f" ? "text-female" : "text-male"}`}>
-              {n.name}
-            </span>
-          </button>
-        );
-      })}
+    <div className={`${className} grid place-items-center bg-secondary font-medium`}>
+      {name[0]}
     </div>
   );
 }
+
+function AffinityDetail({
+  affinity,
+  onBack,
+}: {
+  affinity: Affinity;
+  onBack: () => void;
+}) {
+  const trend = heartTrend(affinity);
+  const max = Math.max(...trend.map((t) => t.value), affinity.value, 1);
+  const isFemale = genderOf(affinity.name) === "f";
+
+  return (
+    <div className="px-5 pt-6">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1 text-sm text-muted-foreground"
+      >
+        <ChevronLeft className="size-4" />
+        心动观察
+      </button>
+
+      <div className="mt-4 flex items-center gap-4">
+        <Avatar name={affinity.name} size={80} className="size-20 rounded-3xl" />
+        <div>
+          <p className={`text-lg font-semibold ${isFemale ? "text-female" : "text-male"}`}>
+            {affinity.name}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{affinity.status}</p>
+          <p className="mt-2 text-sm">
+            当前心动值 <span className="text-xl font-semibold text-romance">{affinity.value}</span>
+          </p>
+        </div>
+      </div>
+
+      <section className="mt-6 rounded-3xl glass-card p-4">
+        <h2 className="text-sm font-semibold">心动值变化</h2>
+        <div className="mt-4 flex h-32 items-end gap-3">
+          {trend.map((t, i) => (
+            <div key={i} className="flex flex-1 flex-col items-center gap-2">
+              <span className="text-[10px] text-muted-foreground">{t.value}</span>
+              <div
+                className="w-full rounded-t-lg bg-romance/70"
+                style={{ height: `${(t.value / max) * 100}%` }}
+              />
+              <span className="text-[10px] text-muted-foreground">{t.day}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <h2 className="text-sm font-semibold">心动瞬间</h2>
+        <ul className="relative mt-4 space-y-4 pl-4">
+          <div className="absolute left-0 top-2 bottom-2 w-px bg-border" aria-hidden />
+          {[...affinity.moments].reverse().map((m, i) => (
+            <li key={i} className="relative rounded-2xl glass-card p-3">
+              <span
+                className="absolute -left-4 top-5 size-2 rounded-full bg-romance"
+                aria-hidden
+              />
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>
+                  {m.day} · {m.time} · {m.place}
+                </span>
+                <span className={m.delta >= 0 ? "text-romance" : "text-muted-foreground"}>
+                  {m.delta >= 0 ? `+${m.delta}` : m.delta}
+                </span>
+              </div>
+              <p className="mt-1.5 text-sm text-foreground">{m.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="h-8" />
+    </div>
+  );
+}
+
 
 
 function MeView() {
