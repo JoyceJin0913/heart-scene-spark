@@ -239,7 +239,8 @@ function SceneView({
                     active ? "bg-romance text-primary-foreground" : "bg-secondary text-muted-foreground"
                   }`}
                 >
-                  {c.key}
+                  {i + 1}
+
                 </span>
                 <span className="text-sm">{c.label}</span>
               </button>
