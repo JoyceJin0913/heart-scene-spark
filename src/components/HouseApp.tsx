@@ -734,7 +734,7 @@ function SceneView({
               onClick={onBack}
               className="mt-4 w-full rounded-full bg-romance py-3 text-sm font-semibold text-primary-foreground"
             >
-              回到小屋
+              {storyMode ? "继续" : "回到小屋"}
             </button>
           </div>
         )}
