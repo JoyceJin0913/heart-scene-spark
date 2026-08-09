@@ -6,7 +6,6 @@ import {
   User,
   ChevronLeft,
   Check,
-  Lock,
   ChevronRight,
 } from "lucide-react";
 import {
