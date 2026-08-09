@@ -43,6 +43,7 @@ function HomeView({
   onOpen: (s: Scene) => void;
 }) {
   const coreScene = scenes.find((s) => s.core)!;
+  const hero = scenes[1]!;
   const done = Object.keys(picked).length;
 
   return (
@@ -54,7 +55,7 @@ function HomeView({
 
       <section className="relative mt-5 overflow-hidden rounded-3xl mx-4 shadow-glow">
         <img
-          src={scenes[1].image}
+          src={hero.image}
           alt="小屋客厅的夜晚，成员们围坐聊天"
           width={1024}
           height={1280}
@@ -70,7 +71,7 @@ function HomeView({
         {members.map((m) => (
           <button
             key={m.id}
-            onClick={() => onOpen(scenes.find((s) => s.place === m.where.slice(1)) ?? scenes[1])}
+            onClick={() => onOpen(scenes.find((s) => s.place === m.where.slice(1)) ?? hero)}
             style={{ top: m.top, left: m.left }}
             className="absolute inline-flex items-center gap-2 rounded-full glass-card px-3 py-1.5 text-xs text-foreground transition-transform hover:scale-105 active:scale-95"
           >
@@ -157,7 +158,7 @@ function SceneView({
   onBack,
 }: {
   scene: Scene;
-  picked?: Choice["key"];
+  picked?: Choice["key"] | undefined;
   onPick: (k: Choice["key"]) => void;
   onBack: () => void;
 }) {
