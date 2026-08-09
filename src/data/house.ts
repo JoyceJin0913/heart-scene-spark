@@ -301,3 +301,50 @@ export const storyTimeline: StoryNode[] = [
   { day: "Day 3", title: "和沈知发生争执" },
   { day: "Day 4", title: "林一主动找你聊天" },
 ];
+
+/** 与成员发起对话时可选的开场白与回应 */
+export type ChatTopic = {
+  key: string;
+  label: string;
+  /** 玩家说出的话 */
+  say: string;
+  /** TA 的回应（按人物覆盖，否则用默认） */
+  reply: string;
+  replyBy?: Record<string, string>;
+};
+
+export const chatTopics: ChatTopic[] = [
+  {
+    key: "greet",
+    label: "打个招呼",
+    say: "在忙吗？我路过看到你一个人。",
+    reply: "不忙，正好想找人说说话。",
+    replyBy: {
+      温宁: "……刚才在厨房有点走神，被你看到了。",
+      沈知: "我在看外面的灯，你要不要一起站会儿。",
+    },
+  },
+  {
+    key: "today",
+    label: "问 TA 今天怎么样",
+    say: "今天过得怎么样？感觉你有点心事。",
+    reply: "还行吧，就是想的事情比说出来的多一点。",
+    replyBy: {
+      温宁: "有些话我还没想清楚，等我想明白了第一个告诉你。",
+      许佳: "晚饭的时候我一直在看你，你没发现吧。",
+    },
+  },
+  {
+    key: "invite",
+    label: "约 TA 明天的约会",
+    say: "明天的约会，如果可以选，我想选你。",
+    reply: "……那我记下了。别到时候反悔。",
+    replyBy: {
+      林一: "行啊，那我明天早点收拾好等你。",
+      苏杳: "你确定吗？说出口就不能收回了哦。",
+    },
+  },
+];
+
+export const replyOf = (topic: ChatTopic, name: string): string =>
+  topic.replyBy?.[name] ?? topic.reply;
