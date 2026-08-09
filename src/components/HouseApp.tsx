@@ -221,8 +221,9 @@ function SceneView({
         <p className="mt-1 text-xs text-muted-foreground">{scene.hint}</p>
 
         <div className="mt-4 space-y-3">
-          {scene.choices.map((c) => {
+          {scene.choices.map((c, i) => {
             const active = picked === c.key;
+
             return (
               <button
                 key={c.key}
