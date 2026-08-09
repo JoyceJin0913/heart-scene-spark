@@ -397,9 +397,19 @@ function HomeView({
         </div>
       </section>
 
+      <div className="px-5 pt-6">
+        <button
+          onClick={onReplay}
+          className="w-full rounded-full border border-border py-3 text-sm text-muted-foreground transition-colors hover:bg-secondary/60"
+        >
+          重看今天的三件事
+        </button>
+      </div>
+
       <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
-        每天 3~5 个关键事件 · 私聊会留下记录
+        自由活动中 · 可以私聊、逛小屋
       </p>
+
 
       {who && !chatWith && (
         <MemberSheet
