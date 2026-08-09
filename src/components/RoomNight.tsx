@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { ChevronLeft, Heart, MessageSquareHeart, Gamepad2, NotebookPen } from "lucide-react";
+import {
+  ChevronLeft,
+  Heart,
+  Gamepad2,
+  Sparkles,
+  Eye,
+  Check,
+  Send,
+} from "lucide-react";
 
 import { avatarOf, genderOf } from "@/data/house";
 import type { ChatLogEntry } from "@/components/HouseApp";
 
-type Mode = "menu" | "sms" | "game" | "review";
+type Mode = "menu" | "choice" | "game";
 
 const SMS_TEMPLATES = [
   { key: "goodnight", text: "今天最后一句话想说给你听：晚安。", gain: 4 },
@@ -36,11 +44,7 @@ const QUIZ = [
   },
 ];
 
-const REVIEW_PROMPTS = [
-  "今天谁的反应，让你想多看一眼？",
-  "如果今天只能重来一句话，你会改哪一句？",
-  "明天你最想靠近谁？",
-];
+type Mark = "heart" | "watch" | null;
 
 export function RoomNight({
   chatLog,
@@ -57,23 +61,13 @@ export function RoomNight({
   return (
     <div className="min-h-[100dvh] pb-8">
       <header className="flex items-center gap-2 px-5 pt-6">
-        {mode === "menu" ? (
-          <button
-            onClick={onLeave}
-            className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary/60"
-            aria-label="回到小屋"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-        ) : (
-          <button
-            onClick={() => setMode("menu")}
-            className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary/60"
-            aria-label="返回房间"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-        )}
+        <button
+          onClick={() => (mode === "menu" ? onLeave() : setMode("menu"))}
+          className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary/60"
+          aria-label={mode === "menu" ? "回到小屋" : "返回房间"}
+        >
+          <ChevronLeft className="size-5" />
+        </button>
         <div className="flex-1">
           <p className="text-[11px] tracking-[0.3em] text-muted-foreground">23:00 · Day 04</p>
           <h1 className="text-lg font-semibold">我的房间</h1>
@@ -86,22 +80,16 @@ export function RoomNight({
       {mode === "menu" && (
         <div className="mt-6 space-y-3 px-5 animate-fade-in">
           <RoomEntry
-            icon={<MessageSquareHeart className="size-5 text-female" />}
-            title="发送心动短信"
-            desc="睡前给今天聊过的人发一条只有 TA 会看到的话"
-            onClick={() => setMode("sms")}
+            icon={<Sparkles className="size-5 text-female" />}
+            title="今晚的心动抉择"
+            desc="给一个人发心动短信，其余的人可以标记心动或留意"
+            onClick={() => setMode("choice")}
           />
           <RoomEntry
             icon={<Gamepad2 className="size-5 text-male" />}
             title="玩心动小游戏"
             desc="回忆今天的三件事，答对越多，心动值越高"
             onClick={() => setMode("game")}
-          />
-          <RoomEntry
-            icon={<NotebookPen className="size-5 text-accent" />}
-            title="复盘思考"
-            desc="把今天没说出口的话，写给自己"
-            onClick={() => setMode("review")}
           />
 
           <p className="pt-4 text-center text-[11px] text-muted-foreground">
@@ -110,11 +98,10 @@ export function RoomNight({
         </div>
       )}
 
-      {mode === "sms" && (
-        <SmsPanel names={talked} onGain={(g) => setHeart((h) => h + g)} />
+      {mode === "choice" && (
+        <ChoicePanel names={talked} onGain={(g) => setHeart((h) => h + g)} />
       )}
       {mode === "game" && <GamePanel onGain={(g) => setHeart((h) => h + g)} />}
-      {mode === "review" && <ReviewPanel />}
     </div>
   );
 }
@@ -144,72 +131,227 @@ function RoomEntry({
   );
 }
 
-function SmsPanel({ names, onGain }: { names: string[]; onGain: (g: number) => void }) {
-  const [to, setTo] = useState<string | null>(names[0] ?? null);
+function Avatar({ name, size = "size-9" }: { name: string; size?: string }) {
+  const src = avatarOf(name);
+  const g = genderOf(name);
+  return src ? (
+    <img src={src} alt={name} className={`${size} rounded-full object-cover`} />
+  ) : (
+    <span
+      className={`${size} inline-flex items-center justify-center rounded-full text-[11px] ${
+        g === "m" ? "bg-male/20 text-male" : "bg-female/20 text-female"
+      }`}
+    >
+      {name.slice(0, 1)}
+    </span>
+  );
+}
+
+function ChoicePanel({ names, onGain }: { names: string[]; onGain: (g: number) => void }) {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [to, setTo] = useState<string | null>(null);
   const [sent, setSent] = useState<{ text: string; reply: string } | null>(null);
+  const [marks, setMarks] = useState<Record<string, Mark>>({});
+
+  const others = names.filter((n) => n !== to);
+
+  if (names.length === 0) {
+    return (
+      <p className="mt-10 px-8 text-center text-xs leading-relaxed text-muted-foreground animate-fade-in">
+        今天还没和谁说过话，明天再试试。
+      </p>
+    );
+  }
 
   return (
     <div className="mt-5 px-5 animate-fade-in">
-      <h2 className="text-sm font-medium">发送心动短信</h2>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {names.map((n) => (
-          <button
-            key={n}
-            onClick={() => {
-              setTo(n);
-              setSent(null);
-            }}
-            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
-              to === n
-                ? genderOf(n) === "m"
-                  ? "border-male bg-male/15 text-male"
-                  : "border-female bg-female/15 text-female"
-                : "border-border text-muted-foreground"
+      {/* 步骤指示 */}
+      <div className="flex items-center gap-2">
+        {[1, 2].map((s) => (
+          <span
+            key={s}
+            className={`h-1 flex-1 rounded-full transition-colors ${
+              step > s || step === s ? "bg-primary" : "bg-border"
             }`}
-          >
-            {avatarOf(n) && (
-              <img src={avatarOf(n)} alt={n} className="size-4 rounded-full object-cover" />
-            )}
-            {n}
-          </button>
+          />
         ))}
       </div>
+      <p className="mt-3 text-[11px] tracking-[0.2em] text-muted-foreground">
+        {step === 1 ? "第一步 · 只能选一个人" : step === 2 ? "第二步 · 其余的人" : "今晚的答案"}
+      </p>
 
-      {!to && (
-        <p className="mt-4 rounded-2xl border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground">
-          今天还没和谁说过话，明天再试试。
-        </p>
-      )}
+      {step === 1 && (
+        <div className="mt-3 animate-fade-in">
+          <h2 className="text-base font-semibold">今晚，你的心动短信发给谁？</h2>
+          <p className="mt-1 text-xs text-muted-foreground">一晚只能发一条，对方会收到。</p>
 
-      {to && !sent && (
-        <ul className="mt-4 space-y-2">
-          {SMS_TEMPLATES.map((t, i) => (
-            <li key={t.key}>
+          <ul className="mt-4 space-y-2">
+            {names.map((n) => (
+              <li key={n}>
+                <button
+                  onClick={() => setTo(n)}
+                  className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-colors ${
+                    to === n
+                      ? genderOf(n) === "m"
+                        ? "border-male bg-male/10"
+                        : "border-female bg-female/10"
+                      : "border-border hover:bg-secondary/60"
+                  }`}
+                >
+                  <Avatar name={n} />
+                  <span className="flex-1 text-sm">{n}</span>
+                  {to === n && <Check className="size-4 text-primary" />}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {to && !sent && (
+            <ul className="mt-4 space-y-2 animate-fade-in">
+              <p className="text-[11px] text-muted-foreground">选一句想说的话</p>
+              {SMS_TEMPLATES.map((t, i) => (
+                <li key={t.key}>
+                  <button
+                    onClick={() => {
+                      onGain(t.gain);
+                      setSent({ text: t.text, reply: SMS_REPLIES[i]! });
+                    }}
+                    className="w-full rounded-2xl glass-card px-3 py-3 text-left text-xs leading-relaxed transition-colors hover:bg-secondary/60"
+                  >
+                    {t.text}
+                    <span className="mt-1 flex items-center gap-1 text-[11px] text-primary">
+                      <Send className="size-3" /> 心动 +{t.gain}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {to && sent && (
+            <div className="mt-4 space-y-2 animate-fade-in">
+              <div className="ml-auto max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-xs leading-relaxed text-primary-foreground">
+                {sent.text}
+              </div>
+              <div className="mr-auto max-w-[80%] rounded-2xl rounded-bl-sm glass-card px-3 py-2 text-xs leading-relaxed">
+                {to}：{sent.reply}
+              </div>
               <button
-                onClick={() => {
-                  onGain(t.gain);
-                  setSent({ text: t.text, reply: SMS_REPLIES[i]! });
-                }}
-                className="w-full rounded-2xl glass-card px-3 py-3 text-left text-xs leading-relaxed transition-colors hover:bg-secondary/60"
+                onClick={() => setStep(2)}
+                className="mt-4 w-full rounded-full bg-primary py-3 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
               >
-                {t.text}
-                <span className="mt-1 block text-[11px] text-primary">心动 +{t.gain}</span>
+                下一步
               </button>
-            </li>
-          ))}
-        </ul>
+            </div>
+          )}
+        </div>
       )}
 
-      {to && sent && (
-        <div className="mt-4 space-y-2 animate-fade-in">
-          <div className="ml-auto max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-3 py-2 text-xs leading-relaxed text-primary-foreground">
-            {sent.text}
+      {step === 2 && (
+        <div className="mt-3 animate-fade-in">
+          <h2 className="text-base font-semibold">其余的人，你要留下记号吗？</h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            「心动」只有节目组知道，「留意」是给自己看的。也可以什么都不选。
+          </p>
+
+          <ul className="mt-4 space-y-2">
+            {others.map((n) => {
+              const m = marks[n] ?? null;
+              return (
+                <li
+                  key={n}
+                  className="flex items-center gap-3 rounded-2xl glass-card px-3 py-3"
+                >
+                  <Avatar name={n} />
+                  <span className="flex-1 text-sm">{n}</span>
+                  <button
+                    onClick={() =>
+                      setMarks((p) => ({ ...p, [n]: m === "heart" ? null : "heart" }))
+                    }
+                    aria-label={`标记心动 ${n}`}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                      m === "heart"
+                        ? "border-female bg-female/15 text-female"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    <Heart className={`size-3 ${m === "heart" ? "fill-current" : ""}`} /> 心动
+                  </button>
+                  <button
+                    onClick={() =>
+                      setMarks((p) => ({ ...p, [n]: m === "watch" ? null : "watch" }))
+                    }
+                    aria-label={`留意 ${n}`}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                      m === "watch"
+                        ? "border-male bg-male/15 text-male"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    <Eye className="size-3" /> 留意
+                  </button>
+                </li>
+              );
+            })}
+            {others.length === 0 && (
+              <p className="rounded-2xl border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground">
+                今天你只和一个人说过话。
+              </p>
+            )}
+          </ul>
+
+          <button
+            onClick={() => {
+              const marked = Object.values(marks).filter(Boolean).length;
+              onGain(marked * 2);
+              setStep(3);
+            }}
+            className="mt-5 w-full rounded-full bg-primary py-3 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
+          >
+            就这样，收起手机
+          </button>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="mt-6 animate-fade-in">
+          <p className="text-center text-[11px] tracking-[0.3em] text-muted-foreground">
+            TONIGHT
+          </p>
+          <div className="mt-4 rounded-3xl glass-card p-5">
+            <div className="flex items-center gap-3">
+              <Avatar name={to!} size="size-12" />
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground">心动短信发给了</p>
+                <p className="text-base font-semibold">{to}</p>
+              </div>
+            </div>
+            <p className="mt-3 rounded-2xl bg-secondary/40 px-3 py-2 text-xs leading-relaxed">
+              {sent?.text}
+            </p>
+
+            {others.some((n) => marks[n]) && (
+              <div className="mt-4 space-y-2 border-t border-border/60 pt-4">
+                {others
+                  .filter((n) => marks[n])
+                  .map((n) => (
+                    <div key={n} className="flex items-center gap-2 text-xs">
+                      <Avatar name={n} size="size-6" />
+                      <span className="flex-1">{n}</span>
+                      <span
+                        className={
+                          marks[n] === "heart" ? "text-female" : "text-male"
+                        }
+                      >
+                        {marks[n] === "heart" ? "心动" : "留意"}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
-          <div className="mr-auto max-w-[80%] rounded-2xl rounded-bl-sm glass-card px-3 py-2 text-xs leading-relaxed">
-            {to}：{sent.reply}
-          </div>
-          <p className="pt-2 text-center text-[11px] text-muted-foreground">
-            今晚只能发一条。收起手机，睡吧。
+          <p className="mt-5 text-center text-[11px] leading-relaxed text-muted-foreground">
+            标记不会被别人看到，但会留在「我的 · 沉淀故事」里。
           </p>
         </div>
       )}
@@ -287,56 +429,6 @@ function GamePanel({ onGain }: { onGain: (g: number) => void }) {
           {step === QUIZ.length - 1 ? "看看结果" : "下一题"}
         </button>
       )}
-    </div>
-  );
-}
-
-function ReviewPanel() {
-  const [i, setI] = useState(0);
-  const [notes, setNotes] = useState<string[]>(["", "", ""]);
-  const [done, setDone] = useState(false);
-
-  if (done) {
-    return (
-      <div className="mt-5 space-y-3 px-5 animate-fade-in">
-        <h2 className="text-sm font-medium">今天的复盘</h2>
-        {REVIEW_PROMPTS.map((p, k) => (
-          <div key={p} className="rounded-2xl glass-card p-3">
-            <p className="text-[11px] text-muted-foreground">{p}</p>
-            <p className="mt-1 text-xs leading-relaxed">{notes[k] || "（没有写）"}</p>
-          </div>
-        ))}
-        <p className="pt-2 text-center text-[11px] text-muted-foreground">
-          写下来的部分，会留在「我的 · 沉淀故事」里。
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-5 px-5 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium">复盘思考</h2>
-        <span className="text-[11px] text-muted-foreground">
-          {i + 1}/{REVIEW_PROMPTS.length}
-        </span>
-      </div>
-      <p className="mt-4 text-sm leading-relaxed">{REVIEW_PROMPTS[i]}</p>
-      <textarea
-        value={notes[i]}
-        onChange={(e) =>
-          setNotes((n) => n.map((v, k) => (k === i ? e.target.value : v)))
-        }
-        rows={4}
-        placeholder="写给自己就好，没有人会看到。"
-        className="mt-3 w-full rounded-2xl border border-border bg-transparent p-3 text-xs leading-relaxed outline-none placeholder:text-muted-foreground focus:border-primary"
-      />
-      <button
-        onClick={() => (i === REVIEW_PROMPTS.length - 1 ? setDone(true) : setI(i + 1))}
-        className="mt-4 w-full rounded-full bg-primary py-3 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
-      >
-        {i === REVIEW_PROMPTS.length - 1 ? "写完了" : "下一个"}
-      </button>
     </div>
   );
 }
