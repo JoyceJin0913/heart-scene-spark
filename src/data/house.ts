@@ -6,6 +6,7 @@ import shenzhi from "@/assets/avatars/shenzhi.jpg";
 import wenning from "@/assets/avatars/wenning.jpg";
 import xujia from "@/assets/avatars/xujia.jpg";
 import suyao from "@/assets/avatars/suyao.jpg";
+import me from "@/assets/avatars/me.jpg";
 
 export type Gender = "m" | "f";
 
