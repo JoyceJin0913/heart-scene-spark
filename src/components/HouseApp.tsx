@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Camera, Heart, Users, User, ChevronLeft, Check, Lock } from "lucide-react";
+import { Home, Heart, User, ChevronLeft, Check, Lock } from "lucide-react";
 import { scenes, members, dateCard, genderOf, type Scene, type Choice } from "@/data/house";
 
 type Picked = Record<string, Choice["key"]>;
@@ -279,10 +279,8 @@ function SceneView({
 function TabBar() {
   const items = [
     { icon: Home, label: "小屋", active: true },
-    { icon: Camera, label: "镜头", active: false },
-    { icon: Heart, label: "心动", active: false },
-    { icon: Users, label: "关系", active: false },
-    { icon: User, label: "我的", active: false },
+    { icon: Heart, label: "心动 · 观察关系", active: false },
+    { icon: User, label: "我的 · 沉淀故事", active: false },
   ];
   return (
     <nav className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-border bg-card/90 backdrop-blur">
@@ -292,7 +290,7 @@ function TabBar() {
             <button
               disabled={!it.active}
               aria-disabled={!it.active}
-              className={`flex w-16 flex-col items-center gap-1 rounded-xl py-1 text-[11px] ${
+              className={`flex flex-col items-center gap-1 rounded-xl py-1 px-2 text-[11px] ${
                 it.active ? "text-primary" : "text-muted-foreground/50 cursor-not-allowed"
               }`}
             >
