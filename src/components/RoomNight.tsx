@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   ChevronLeft,
+  ChevronRight,
   Heart,
   Gamepad2,
   Sparkles,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { avatarOf, genderOf } from "@/data/house";
+import roomNightImg from "@/assets/room-night.jpg";
 import type { ChatLogEntry } from "@/components/HouseApp";
 
 type Mode = "menu" | "choice" | "game";
@@ -78,23 +80,40 @@ export function RoomNight({
       </header>
 
       {mode === "menu" && (
-        <div className="mt-6 space-y-3 px-5 animate-fade-in">
-          <RoomEntry
-            icon={<Sparkles className="size-5 text-female" />}
-            title="今晚的心动抉择"
-            desc="给一个人发心动短信，其余的人可以标记心动或留意"
-            onClick={() => setMode("choice")}
-          />
-          <RoomEntry
-            icon={<Gamepad2 className="size-5 text-male" />}
-            title="玩心动小游戏"
-            desc="回忆今天的三件事，答对越多，心动值越高"
-            onClick={() => setMode("game")}
-          />
+        <div className="mt-4 flex flex-col gap-4 px-5 animate-fade-in">
+          <div className="relative overflow-hidden rounded-3xl">
+            <img
+              src={roomNightImg}
+              alt="夜里的房间"
+              width={896}
+              height={1024}
+              className="aspect-[4/3] w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-4">
+              <p className="text-[11px] tracking-[0.25em] text-muted-foreground">TONIGHT</p>
+              <p className="mt-1 text-sm leading-relaxed text-foreground/90">
+                灯关了一半，今天你和 {talked.length} 个人说过话。
+              </p>
+            </div>
+          </div>
 
-          <p className="pt-4 text-center text-[11px] text-muted-foreground">
-            今天你和 {talked.length} 个人说过话
-          </p>
+          <div className="grid flex-1 grid-cols-1 gap-3">
+            <RoomEntry
+              icon={<Sparkles className="size-6 text-female" />}
+              title="今晚的心动抉择"
+              desc="给一个人发心动短信，其余的人可以标记心动或留意"
+              tag="1 次 / 每晚"
+              onClick={() => setMode("choice")}
+            />
+            <RoomEntry
+              icon={<Gamepad2 className="size-6 text-male" />}
+              title="玩心动小游戏"
+              desc="回忆今天的三件事，答对越多，心动值越高"
+              tag="3 题 · 可得 +9"
+              onClick={() => setMode("game")}
+            />
+          </div>
         </div>
       )}
 
@@ -110,23 +129,35 @@ function RoomEntry({
   icon,
   title,
   desc,
+  tag,
   onClick,
 }: {
   icon: React.ReactNode;
   title: string;
   desc: string;
+  tag?: string;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-start gap-3 rounded-2xl glass-card p-4 text-left transition-colors hover:bg-secondary/60 active:scale-[0.99]"
+      className="group flex w-full items-start gap-4 rounded-3xl glass-card p-5 text-left transition-colors hover:bg-secondary/60 active:scale-[0.99]"
     >
-      <span className="mt-0.5">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium">{title}</span>
-        <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{desc}</span>
+      <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-secondary/60">
+        {icon}
       </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2">
+          <span className="text-base font-semibold">{title}</span>
+          {tag && (
+            <span className="rounded-full bg-secondary/70 px-2 py-0.5 text-[10px] text-muted-foreground">
+              {tag}
+            </span>
+          )}
+        </span>
+        <span className="mt-1.5 block text-xs leading-relaxed text-muted-foreground">{desc}</span>
+      </span>
+      <ChevronRight className="mt-3 size-4 shrink-0 text-muted-foreground" />
     </button>
   );
 }
