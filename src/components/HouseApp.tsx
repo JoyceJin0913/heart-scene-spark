@@ -31,13 +31,13 @@ import {
 
 type TabKey = "house" | "relationships" | "me";
 type Picked = Record<string, Choice["key"]>;
+export type ChatLogEntry = { name: string; label: string; say: string; reply: string };
 
 export function HouseApp() {
   const [tab, setTab] = useState<TabKey>("house");
   const [openScene, setOpenScene] = useState<Scene | null>(null);
   const [picked, setPicked] = useState<Picked>({});
-  const coreScene = scenes.find((s) => s.core)!;
-  const coreDone = Boolean(picked[coreScene.id]);
+  const [chatLog, setChatLog] = useState<ChatLogEntry[]>([]);
 
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
@@ -46,7 +46,8 @@ export function HouseApp() {
           <HouseContent
             openScene={openScene}
             picked={picked}
-            coreDone={coreDone}
+            chatLog={chatLog}
+            onLog={(e) => setChatLog((l) => [...l, e])}
             onOpen={(s) => setOpenScene(s)}
             onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
             onBack={() => setOpenScene(null)}
@@ -63,14 +64,16 @@ export function HouseApp() {
 function HouseContent({
   openScene,
   picked,
-  coreDone,
+  chatLog,
+  onLog,
   onOpen,
   onPick,
   onBack,
 }: {
   openScene: Scene | null;
   picked: Picked;
-  coreDone: boolean;
+  chatLog: ChatLogEntry[];
+  onLog: (e: ChatLogEntry) => void;
   onOpen: (s: Scene) => void;
   onPick: (id: string, k: Choice["key"]) => void;
   onBack: () => void;
@@ -86,33 +89,28 @@ function HouseContent({
     );
   }
 
-  return (
-    <HomeView
-      picked={picked}
-      coreDone={coreDone}
-      onOpen={onOpen}
-    />
-  );
+  return <HomeView picked={picked} chatLog={chatLog} onLog={onLog} onOpen={onOpen} />;
 }
 
 const ROOMS = ["客厅", "厨房", "阳台"] as const;
 
 function HomeView({
   picked,
-  coreDone,
+  chatLog,
+  onLog,
   onOpen,
 }: {
   picked: Picked;
-  coreDone: boolean;
+  chatLog: ChatLogEntry[];
+  onLog: (e: ChatLogEntry) => void;
   onOpen: (s: Scene) => void;
 }) {
-  const coreScene = scenes.find((s) => s.core)!;
-  const observeScenes = scenes.filter((s) => !s.core);
+  const allScenes = scenes;
   const hero = scenes[1]!;
   const [who, setWho] = useState<Member | null>(null);
   const [chatWith, setChatWith] = useState<Member | null>(null);
 
-  const total = scenes.length + microEvents.length;
+
 
   return (
     <div>
@@ -189,34 +187,15 @@ function HomeView({
         </div>
       </section>
 
-      {/* 今日核心选择 */}
-      <section className="mt-6 px-5">
-        <button
-          onClick={() => onOpen(coreScene)}
-          className="w-full overflow-hidden rounded-2xl border border-primary/40 bg-romance/10 p-4 text-left shadow-glow transition-transform active:scale-[0.99]"
-        >
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-romance px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
-              今日核心选择
-            </span>
-            <span className="text-[11px] text-muted-foreground">每天仅 1 次</span>
-          </div>
-          <p className="mt-2 text-base font-semibold">{coreScene.title}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {coreScene.place} · {coreScene.time} · {coreDone ? "已做出选择" : "等待你的判断"}
-          </p>
-        </button>
-      </section>
-
-      {/* 观察事件 */}
+      {/* 三件事 */}
       <section className="mt-6 px-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-base font-semibold">今天发生了 {total} 件事</h2>
-          <span className="text-xs text-muted-foreground">观察 · 无需选择</span>
+          <h2 className="text-base font-semibold">今天发生了</h2>
         </div>
 
-        <ul className="mt-3 space-y-3">
-          {observeScenes.map((s) => (
+        <h3 className="mt-3 text-sm font-medium text-accent">三件事</h3>
+        <ul className="mt-2 space-y-3">
+          {allScenes.map((s) => (
             <li key={s.id}>
               <button
                 onClick={() => onOpen(s)}
@@ -256,7 +235,35 @@ function HomeView({
             </li>
           ))}
         </ul>
+
+        <h3 className="mt-6 text-sm font-medium text-accent">发生的私聊记录</h3>
+        {chatLog.length === 0 ? (
+          <p className="mt-2 rounded-2xl border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground">
+            还没有私聊。点上面的名字，去和 TA 说句话。
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {chatLog.map((c, i) => (
+              <li key={i} className="rounded-2xl glass-card p-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-medium ${
+                      genderOf(c.name) === "m" ? "text-male" : "text-female"
+                    }`}
+                  >
+                    你 × {c.name}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">{c.label}</span>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  「{c.reply}」
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
+
 
       <section className="mt-6 px-5">
         <div className="rounded-2xl glass-card p-4">
@@ -268,7 +275,7 @@ function HomeView({
       </section>
 
       <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
-        每天 3~5 个关键事件 · 每天 1 次核心选择
+        每天 3~5 个关键事件 · 私聊会留下记录
       </p>
 
       {who && !chatWith && (
@@ -282,11 +289,13 @@ function HomeView({
       {chatWith && (
         <ChatSheet
           member={chatWith}
+          onLog={onLog}
           onClose={() => {
             setChatWith(null);
             setWho(null);
           }}
         />
+
       )}
     </div>
   );
@@ -381,7 +390,15 @@ function MemberSheet({
 
 type ChatMsg = { from: "me" | "ta"; text: string };
 
-function ChatSheet({ member, onClose }: { member: Member; onClose: () => void }) {
+function ChatSheet({
+  member,
+  onClose,
+  onLog,
+}: {
+  member: Member;
+  onClose: () => void;
+  onLog: (e: ChatLogEntry) => void;
+}) {
   const tone = member.gender === "m" ? "text-male" : "text-female";
   const [msgs, setMsgs] = useState<ChatMsg[]>([
     { from: "ta", text: `（${member.where}）嗯？你怎么过来了。` },
@@ -396,10 +413,13 @@ function ChatSheet({ member, onClose }: { member: Member; onClose: () => void })
   const send = (t: (typeof chatTopics)[number]) => {
     setUsed((u) => [...u, t.key]);
     setMsgs((m) => [...m, { from: "me", text: t.say }]);
+    const reply = replyOf(t, member.name);
     window.setTimeout(() => {
-      setMsgs((m) => [...m, { from: "ta", text: replyOf(t, member.name) }]);
+      setMsgs((m) => [...m, { from: "ta", text: reply }]);
     }, 550);
+    onLog({ name: member.name, label: t.label, say: t.say, reply });
   };
+
 
   const left = chatTopics.filter((t) => !used.includes(t.key));
 
