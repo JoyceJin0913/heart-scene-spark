@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Home, Camera, Heart, Users, User, ChevronLeft, Check, Lock } from "lucide-react";
-import { scenes, members, dateCard, type Scene, type Choice } from "@/data/house";
+import { scenes, members, dateCard, genderOf, type Scene, type Choice } from "@/data/house";
 
 type Picked = Record<string, Choice["key"]>;
 
