@@ -243,3 +243,33 @@ export const relationshipGraph: { nodes: GraphNode[]; edges: GraphEdge[] } = {
     ["温宁", "苏杳"],
   ],
 };
+
+export const meAvatar = me;
+
+export type Profile = {
+  name: string;
+  day: string;
+  target: string;
+  value: number;
+  moments: number;
+};
+
+export const profile: Profile = {
+  name: "你",
+  day: "Day 04",
+  target: "温宁",
+  value: 72,
+  moments: 3,
+};
+
+export type StoryNode = {
+  day: string;
+  title: string;
+};
+
+export const storyTimeline: StoryNode[] = [
+  { day: "Day 1", title: "初次见面" },
+  { day: "Day 2", title: "第一次约会" },
+  { day: "Day 3", title: "和沈知发生争执" },
+  { day: "Day 4", title: "林一主动找你聊天" },
+];
