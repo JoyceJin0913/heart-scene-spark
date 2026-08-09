@@ -1130,7 +1130,7 @@ function TabBar({
 }) {
   const items: { key: TabKey; icon: typeof Home; label: string }[] = [
     { key: "house", icon: Home, label: "小屋" },
-    { key: "relationships", icon: Heart, label: "心动 · 观察关系" },
+    { key: "relationships", icon: Heart, label: "心动观察" },
     { key: "me", icon: User, label: "我的 · 沉淀故事" },
   ];
 
