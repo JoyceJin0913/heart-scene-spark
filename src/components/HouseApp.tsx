@@ -390,7 +390,15 @@ function MemberSheet({
 
 type ChatMsg = { from: "me" | "ta"; text: string };
 
-function ChatSheet({ member, onClose }: { member: Member; onClose: () => void }) {
+function ChatSheet({
+  member,
+  onClose,
+  onLog,
+}: {
+  member: Member;
+  onClose: () => void;
+  onLog: (e: ChatLogEntry) => void;
+}) {
   const tone = member.gender === "m" ? "text-male" : "text-female";
   const [msgs, setMsgs] = useState<ChatMsg[]>([
     { from: "ta", text: `（${member.where}）嗯？你怎么过来了。` },
@@ -405,10 +413,13 @@ function ChatSheet({ member, onClose }: { member: Member; onClose: () => void })
   const send = (t: (typeof chatTopics)[number]) => {
     setUsed((u) => [...u, t.key]);
     setMsgs((m) => [...m, { from: "me", text: t.say }]);
+    const reply = replyOf(t, member.name);
     window.setTimeout(() => {
-      setMsgs((m) => [...m, { from: "ta", text: replyOf(t, member.name) }]);
+      setMsgs((m) => [...m, { from: "ta", text: reply }]);
     }, 550);
+    onLog({ name: member.name, label: t.label, say: t.say, reply });
   };
+
 
   const left = chatTopics.filter((t) => !used.includes(t.key));
 
