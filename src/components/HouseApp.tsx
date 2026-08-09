@@ -398,9 +398,28 @@ function SceneView({
         </div>
       </div>
 
+      {scene.observe ? (
+        <div className="px-5 pt-6">
+          <p className="text-xs tracking-widest text-accent">观察记录</p>
+          <p className="mt-2 text-sm leading-relaxed text-foreground/90">{scene.outcome}</p>
+          <button
+            onClick={() => {
+              onPick(scene.choices[0]!.key);
+              onBack();
+            }}
+            className="mt-6 w-full rounded-full bg-secondary py-3.5 text-sm font-medium transition-transform active:scale-[0.98]"
+          >
+            继续观察
+          </button>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">
+            这是观察事件，今天的选择留给核心时刻
+          </p>
+        </div>
+      ) : (
       <div className="px-5 pt-6">
         <h2 className="text-lg font-semibold text-primary">{scene.question}</h2>
         <p className="mt-1 text-xs text-muted-foreground">{scene.hint}</p>
+
 
         <div className="mt-4 space-y-3">
           {scene.choices.map((c, i) => {
