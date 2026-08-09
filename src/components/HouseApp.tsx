@@ -30,6 +30,8 @@ import {
   type Choice,
   type Member,
 } from "@/data/house";
+import { RoomNight } from "@/components/RoomNight";
+
 
 type TabKey = "house" | "relationships" | "me";
 type Picked = Record<string, Choice["key"]>;
