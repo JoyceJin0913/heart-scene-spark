@@ -229,10 +229,10 @@ export type GraphEdge = [string, string];
 export const relationshipGraph: { nodes: GraphNode[]; edges: GraphEdge[] } = {
   nodes: [
     { name: "温宁", top: "50%", left: "50%" },
-    { name: "林一", top: "16%", left: "20%" },
-    { name: "沈知", top: "16%", left: "80%" },
-    { name: "许佳", top: "84%", left: "20%" },
-    { name: "苏杳", top: "84%", left: "80%" },
+    { name: "林一", top: "20%", left: "22%" },
+    { name: "沈知", top: "20%", left: "78%" },
+    { name: "许佳", top: "80%", left: "22%" },
+    { name: "苏杳", top: "80%", left: "78%" },
   ],
   edges: [
     ["林一", "温宁"],

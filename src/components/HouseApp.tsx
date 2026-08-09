@@ -376,7 +376,7 @@ function RelationshipsView() {
 
       <section className="mt-8">
         <h2 className="text-base font-semibold">关系走向</h2>
-        <div className="relative mt-4 aspect-square rounded-3xl glass-card overflow-hidden">
+        <div className="relative mt-4 h-72 rounded-3xl glass-card overflow-hidden">
           <RelationshipGraph />
         </div>
       </section>
