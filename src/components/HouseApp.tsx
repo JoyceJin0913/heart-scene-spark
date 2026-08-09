@@ -553,7 +553,10 @@ function MemberSheet({
 }) {
   const room = member.where.slice(1);
   const scene = scenes.find((s) => s.place === room);
-  const rel = relationshipCards.find((r) => r.name === member.name);
+  const aff = affinities.find((a) => a.name === member.name);
+  const rel = aff
+    ? { desc: aff.status, meta: aff.moments[aff.moments.length - 1]?.text ?? "", value: aff.value }
+    : undefined;
   const tone = member.gender === "m" ? "text-male" : "text-female";
 
   return (
