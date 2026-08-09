@@ -613,16 +613,18 @@ function SceneView({
   picked,
   onPick,
   onBack,
+  storyMode,
 }: {
   scene: Scene;
   picked?: Choice["key"] | undefined;
   onPick: (k: Choice["key"]) => void;
   onBack: () => void;
+  storyMode?: boolean;
 }) {
   const chosen = scene.choices.find((c) => c.key === picked);
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="relative">
         <img
           src={scene.image}
@@ -633,18 +635,23 @@ function SceneView({
         />
         <div className="absolute inset-0 bg-night-fade" />
         <div className="absolute inset-x-0 top-6 flex items-center px-4">
-          <button
-            onClick={onBack}
-            aria-label="返回小屋"
-            className="grid size-9 place-items-center rounded-full glass-card"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
+          {storyMode ? (
+            <span className="size-9" />
+          ) : (
+            <button
+              onClick={onBack}
+              aria-label="返回小屋"
+              className="grid size-9 place-items-center rounded-full glass-card"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+          )}
           <p className="flex-1 text-center text-sm font-medium">
             {scene.place} · {scene.time}
           </p>
           <span className="size-9" />
         </div>
+
 
         <div className="absolute inset-x-4 bottom-4 rounded-2xl glass-card px-4 py-3">
           {scene.dialogue.map((d, i) => (
