@@ -209,7 +209,18 @@ export const scenes: Scene[] = [
   },
 ];
 
+/** 主线时间线：按时间顺序依次播放的三件事 */
+export const storySequence: string[] = ["living", "kitchen", "balcony"];
+
+/** 每段事件之后的过渡文字（最后一条是进入自由活动前的过渡） */
+export const storyTransitions: string[] = [
+  "半小时后……",
+  "夜色又深了一些……",
+  "小屋慢慢安静下来……",
+];
+
 export const dateCard = {
+
   title: "明日约会 · 城南旧书店",
   time: "Day 05 · 15:00",
   desc: "五男五女，两人一组，60 分钟独处。名单会在今晚的核心选择之后揭晓。",

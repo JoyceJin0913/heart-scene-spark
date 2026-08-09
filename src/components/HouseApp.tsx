@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import {
   scenes,
+  storySequence,
+  storyTransitions,
   members,
   hotspots,
   microEvents,
@@ -33,30 +35,144 @@ type TabKey = "house" | "relationships" | "me";
 type Picked = Record<string, Choice["key"]>;
 export type ChatLogEntry = { name: string; label: string; say: string; reply: string };
 
+const STORY_KEY = "house-story-progress-day04";
+
+type StoryProgress = { index: number; done: boolean };
+
+function loadProgress(): StoryProgress {
+  if (typeof window === "undefined") return { index: 0, done: false };
+  try {
+    const raw = window.localStorage.getItem(STORY_KEY);
+    if (!raw) return { index: 0, done: false };
+    const p = JSON.parse(raw) as StoryProgress;
+    return { index: Math.min(p.index ?? 0, storySequence.length - 1), done: !!p.done };
+  } catch {
+    return { index: 0, done: false };
+  }
+}
+
 export function HouseApp() {
   const [tab, setTab] = useState<TabKey>("house");
   const [openScene, setOpenScene] = useState<Scene | null>(null);
   const [picked, setPicked] = useState<Picked>({});
   const [chatLog, setChatLog] = useState<ChatLogEntry[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  const [progress, setProgress] = useState<StoryProgress>({ index: 0, done: false });
+
+  useEffect(() => {
+    setProgress(loadProgress());
+    setHydrated(true);
+  }, []);
+
+  const saveProgress = (p: StoryProgress) => {
+    setProgress(p);
+    try {
+      window.localStorage.setItem(STORY_KEY, JSON.stringify(p));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const inStory = hydrated && tab === "house" && !progress.done;
 
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
-      <div className="flex-1 pb-24">
-        {tab === "house" && (
-          <HouseContent
-            openScene={openScene}
-            picked={picked}
-            chatLog={chatLog}
-            onLog={(e) => setChatLog((l) => [...l, e])}
-            onOpen={(s) => setOpenScene(s)}
-            onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
-            onBack={() => setOpenScene(null)}
-          />
-        )}
+      <div className={inStory ? "flex-1" : "flex-1 pb-24"}>
+        {tab === "house" &&
+          (inStory ? (
+            <StoryFlow
+              startIndex={progress.index}
+              picked={picked}
+              onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
+              onStep={(i) => saveProgress({ index: i, done: false })}
+              onFinish={() => saveProgress({ index: storySequence.length - 1, done: true })}
+            />
+          ) : (
+            <HouseContent
+              openScene={openScene}
+              picked={picked}
+              chatLog={chatLog}
+              onLog={(e) => setChatLog((l) => [...l, e])}
+              onOpen={(s) => setOpenScene(s)}
+              onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
+              onBack={() => setOpenScene(null)}
+              onReplay={() => saveProgress({ index: 0, done: false })}
+            />
+          ))}
         {tab === "relationships" && <RelationshipsView />}
         {tab === "me" && <MeView />}
       </div>
-      <TabBar active={tab} onChange={setTab} />
+      {!inStory && <TabBar active={tab} onChange={setTab} />}
+    </div>
+  );
+}
+
+/** 主线：三件事依次播放，中间用文字淡入淡出过渡，播完自动进入自由小屋 */
+function StoryFlow({
+  startIndex,
+  picked,
+  onPick,
+  onStep,
+  onFinish,
+}: {
+  startIndex: number;
+  picked: Picked;
+  onPick: (id: string, k: Choice["key"]) => void;
+  onStep: (i: number) => void;
+  onFinish: () => void;
+}) {
+  const [index, setIndex] = useState(startIndex);
+  const [transition, setTransition] = useState<string | null>(null);
+
+  const scene = scenes.find((s) => s.id === storySequence[index]);
+
+  const next = () => {
+    const text = storyTransitions[index] ?? "……";
+    setTransition(text);
+    window.setTimeout(() => {
+      if (index >= storySequence.length - 1) {
+        onFinish();
+      } else {
+        const n = index + 1;
+        setIndex(n);
+        onStep(n);
+        setTransition(null);
+      }
+    }, 2200);
+  };
+
+  if (!scene) return null;
+
+  return (
+    <div className="relative">
+      <div className="absolute inset-x-0 top-0 z-10 px-5 pt-3">
+        <div className="flex items-center justify-center gap-1.5">
+          {storySequence.map((id, i) => (
+            <span
+              key={id}
+              className={`h-1 w-8 rounded-full transition-colors ${
+                i <= index ? "bg-primary" : "bg-border"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <SceneView
+        scene={scene}
+        picked={picked[scene.id]}
+        onPick={(k) => onPick(scene.id, k)}
+        onBack={next}
+        storyMode
+      />
+
+      {transition && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-background animate-fade-in">
+          <p className="animate-fade-in text-lg tracking-[0.3em] text-muted-foreground">
+            {transition}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -69,6 +185,7 @@ function HouseContent({
   onOpen,
   onPick,
   onBack,
+  onReplay,
 }: {
   openScene: Scene | null;
   picked: Picked;
@@ -77,6 +194,7 @@ function HouseContent({
   onOpen: (s: Scene) => void;
   onPick: (id: string, k: Choice["key"]) => void;
   onBack: () => void;
+  onReplay: () => void;
 }) {
   if (openScene) {
     return (
@@ -89,8 +207,11 @@ function HouseContent({
     );
   }
 
-  return <HomeView picked={picked} chatLog={chatLog} onLog={onLog} onOpen={onOpen} />;
+  return (
+    <HomeView picked={picked} chatLog={chatLog} onLog={onLog} onOpen={onOpen} onReplay={onReplay} />
+  );
 }
+
 
 const ROOMS = ["客厅", "厨房", "阳台"] as const;
 
@@ -99,11 +220,13 @@ function HomeView({
   chatLog,
   onLog,
   onOpen,
+  onReplay,
 }: {
   picked: Picked;
   chatLog: ChatLogEntry[];
   onLog: (e: ChatLogEntry) => void;
   onOpen: (s: Scene) => void;
+  onReplay: () => void;
 }) {
   const allScenes = scenes;
   const hero = scenes[1]!;
@@ -274,9 +397,19 @@ function HomeView({
         </div>
       </section>
 
+      <div className="px-5 pt-6">
+        <button
+          onClick={onReplay}
+          className="w-full rounded-full border border-border py-3 text-sm text-muted-foreground transition-colors hover:bg-secondary/60"
+        >
+          重看今天的三件事
+        </button>
+      </div>
+
       <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
-        每天 3~5 个关键事件 · 私聊会留下记录
+        自由活动中 · 可以私聊、逛小屋
       </p>
+
 
       {who && !chatWith && (
         <MemberSheet
@@ -490,16 +623,18 @@ function SceneView({
   picked,
   onPick,
   onBack,
+  storyMode,
 }: {
   scene: Scene;
   picked?: Choice["key"] | undefined;
   onPick: (k: Choice["key"]) => void;
   onBack: () => void;
+  storyMode?: boolean;
 }) {
   const chosen = scene.choices.find((c) => c.key === picked);
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="relative">
         <img
           src={scene.image}
@@ -510,18 +645,23 @@ function SceneView({
         />
         <div className="absolute inset-0 bg-night-fade" />
         <div className="absolute inset-x-0 top-6 flex items-center px-4">
-          <button
-            onClick={onBack}
-            aria-label="返回小屋"
-            className="grid size-9 place-items-center rounded-full glass-card"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
+          {storyMode ? (
+            <span className="size-9" />
+          ) : (
+            <button
+              onClick={onBack}
+              aria-label="返回小屋"
+              className="grid size-9 place-items-center rounded-full glass-card"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+          )}
           <p className="flex-1 text-center text-sm font-medium">
             {scene.place} · {scene.time}
           </p>
           <span className="size-9" />
         </div>
+
 
         <div className="absolute inset-x-4 bottom-4 rounded-2xl glass-card px-4 py-3">
           {scene.dialogue.map((d, i) => (
@@ -546,11 +686,12 @@ function SceneView({
             }}
             className="mt-6 w-full rounded-full bg-secondary py-3.5 text-sm font-medium transition-transform active:scale-[0.98]"
           >
-            继续观察
+            {storyMode ? "继续" : "继续观察"}
           </button>
           <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            这是观察事件，今天的选择留给核心时刻
+            {storyMode ? "时间还在往前走" : "这是观察事件，今天的选择留给核心时刻"}
           </p>
+
         </div>
       ) : (
       <div className="px-5 pt-6">
@@ -603,7 +744,7 @@ function SceneView({
               onClick={onBack}
               className="mt-4 w-full rounded-full bg-romance py-3 text-sm font-semibold text-primary-foreground"
             >
-              回到小屋
+              {storyMode ? "继续" : "回到小屋"}
             </button>
           </div>
         )}
