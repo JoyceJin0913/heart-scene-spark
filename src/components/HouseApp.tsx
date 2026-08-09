@@ -676,11 +676,12 @@ function SceneView({
             }}
             className="mt-6 w-full rounded-full bg-secondary py-3.5 text-sm font-medium transition-transform active:scale-[0.98]"
           >
-            继续观察
+            {storyMode ? "继续" : "继续观察"}
           </button>
           <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            这是观察事件，今天的选择留给核心时刻
+            {storyMode ? "时间还在往前走" : "这是观察事件，今天的选择留给核心时刻"}
           </p>
+
         </div>
       ) : (
       <div className="px-5 pt-6">
