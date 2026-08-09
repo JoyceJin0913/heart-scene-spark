@@ -220,11 +220,13 @@ function HomeView({
   chatLog,
   onLog,
   onOpen,
+  onReplay,
 }: {
   picked: Picked;
   chatLog: ChatLogEntry[];
   onLog: (e: ChatLogEntry) => void;
   onOpen: (s: Scene) => void;
+  onReplay: () => void;
 }) {
   const allScenes = scenes;
   const hero = scenes[1]!;
