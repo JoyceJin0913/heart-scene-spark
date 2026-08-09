@@ -491,7 +491,15 @@ function HomeView({
         </div>
       </section>
 
-      <div className="px-5 pt-6">
+      <div className="space-y-2 px-5 pt-6">
+        {canEnterRoom && (
+          <button
+            onClick={onEnterRoom}
+            className="w-full rounded-full bg-primary py-3 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
+          >
+            回到自己的房间
+          </button>
+        )}
         <button
           onClick={onReplay}
           className="w-full rounded-full border border-border py-3 text-sm text-muted-foreground transition-colors hover:bg-secondary/60"
@@ -499,6 +507,7 @@ function HomeView({
           重看今天的三件事
         </button>
       </div>
+
 
       <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
         自由活动中 · 可以私聊、逛小屋
