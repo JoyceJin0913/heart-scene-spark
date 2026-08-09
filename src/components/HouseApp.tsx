@@ -189,34 +189,15 @@ function HomeView({
         </div>
       </section>
 
-      {/* 今日核心选择 */}
-      <section className="mt-6 px-5">
-        <button
-          onClick={() => onOpen(coreScene)}
-          className="w-full overflow-hidden rounded-2xl border border-primary/40 bg-romance/10 p-4 text-left shadow-glow transition-transform active:scale-[0.99]"
-        >
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-romance px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
-              今日核心选择
-            </span>
-            <span className="text-[11px] text-muted-foreground">每天仅 1 次</span>
-          </div>
-          <p className="mt-2 text-base font-semibold">{coreScene.title}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {coreScene.place} · {coreScene.time} · {coreDone ? "已做出选择" : "等待你的判断"}
-          </p>
-        </button>
-      </section>
-
-      {/* 观察事件 */}
+      {/* 三件事 */}
       <section className="mt-6 px-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-base font-semibold">今天发生了 {total} 件事</h2>
-          <span className="text-xs text-muted-foreground">观察 · 无需选择</span>
+          <h2 className="text-base font-semibold">今天发生了</h2>
         </div>
 
-        <ul className="mt-3 space-y-3">
-          {observeScenes.map((s) => (
+        <h3 className="mt-3 text-sm font-medium text-accent">三件事</h3>
+        <ul className="mt-2 space-y-3">
+          {allScenes.map((s) => (
             <li key={s.id}>
               <button
                 onClick={() => onOpen(s)}
@@ -256,7 +237,35 @@ function HomeView({
             </li>
           ))}
         </ul>
+
+        <h3 className="mt-6 text-sm font-medium text-accent">发生的私聊记录</h3>
+        {chatLog.length === 0 ? (
+          <p className="mt-2 rounded-2xl border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground">
+            还没有私聊。点上面的名字，去和 TA 说句话。
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {chatLog.map((c, i) => (
+              <li key={i} className="rounded-2xl glass-card p-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-medium ${
+                      genderOf(c.name) === "m" ? "text-male" : "text-female"
+                    }`}
+                  >
+                    你 × {c.name}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">{c.label}</span>
+                </div>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  「{c.reply}」
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
+
 
       <section className="mt-6 px-5">
         <div className="rounded-2xl glass-card p-4">
