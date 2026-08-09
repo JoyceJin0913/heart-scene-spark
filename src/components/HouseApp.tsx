@@ -123,6 +123,7 @@ function StoryFlow({
 }) {
   const [index, setIndex] = useState(startIndex);
   const [transition, setTransition] = useState<string | null>(null);
+  const [ending, setEnding] = useState(false);
 
   const scene = scenes.find((s) => s.id === storySequence[index]);
 
@@ -131,7 +132,8 @@ function StoryFlow({
     setTransition(text);
     window.setTimeout(() => {
       if (index >= storySequence.length - 1) {
-        onFinish();
+        setTransition(null);
+        setEnding(true);
       } else {
         const n = index + 1;
         setIndex(n);
@@ -140,6 +142,31 @@ function StoryFlow({
       }
     }, 2200);
   };
+
+  if (ending) {
+    return (
+      <div className="grid min-h-[100dvh] place-items-center px-8 animate-fade-in">
+        <div className="text-center">
+          <p className="text-xs tracking-[0.3em] text-muted-foreground">22:30</p>
+          <h2 className="mt-4 text-xl font-medium leading-relaxed text-foreground">
+            小屋安静下来了
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            今天的三件事已经发生完。
+            <br />
+            现在你可以主动找想私聊的同学聊聊天。
+          </p>
+          <button
+            onClick={onFinish}
+            className="mt-8 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
+          >
+            回到小屋
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   if (!scene) return null;
 
