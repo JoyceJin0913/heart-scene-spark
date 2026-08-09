@@ -61,7 +61,7 @@ export function RoomNight({
   const talked = Array.from(new Set(chatLog.map((c) => c.name)));
 
   return (
-    <div className="min-h-[100dvh] pb-8">
+    <div className="flex min-h-[100dvh] flex-col pb-8">
       <header className="flex items-center gap-2 px-5 pt-6">
         <button
           onClick={() => (mode === "menu" ? onLeave() : setMode("menu"))}
@@ -80,14 +80,14 @@ export function RoomNight({
       </header>
 
       {mode === "menu" && (
-        <div className="mt-4 flex flex-col gap-4 px-5 animate-fade-in">
-          <div className="relative overflow-hidden rounded-3xl">
+        <div className="mt-4 flex flex-1 flex-col gap-3 px-5 animate-fade-in">
+          <div className="relative shrink-0 overflow-hidden rounded-3xl">
             <img
               src={roomNightImg}
               alt="夜里的房间"
               width={896}
               height={1024}
-              className="aspect-[4/3] w-full object-cover"
+              className="aspect-[16/10] w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-4">
@@ -98,19 +98,21 @@ export function RoomNight({
             </div>
           </div>
 
-          <div className="grid flex-1 grid-cols-1 gap-3">
+          <div className="grid flex-1 grid-cols-2 gap-3">
             <RoomEntry
-              icon={<Sparkles className="size-6 text-female" />}
+              icon={<Sparkles className="size-7 text-female" />}
               title="今晚的心动抉择"
-              desc="给一个人发心动短信，其余的人可以标记心动或留意"
+              desc="给一个人发短信，其余可标记心动或留意"
               tag="1 次 / 每晚"
+              tone="female"
               onClick={() => setMode("choice")}
             />
             <RoomEntry
-              icon={<Gamepad2 className="size-6 text-male" />}
+              icon={<Gamepad2 className="size-7 text-male" />}
               title="玩心动小游戏"
-              desc="回忆今天的三件事，答对越多，心动值越高"
+              desc="回忆今天的三件事，答对越多心动值越高"
               tag="3 题 · 可得 +9"
+              tone="male"
               onClick={() => setMode("game")}
             />
           </div>
