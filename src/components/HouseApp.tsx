@@ -206,10 +206,13 @@ function SceneView({
         <div className="absolute inset-x-4 bottom-4 rounded-2xl glass-card px-4 py-3">
           {scene.dialogue.map((d, i) => (
             <p key={i} className="py-0.5 text-sm text-foreground/90">
-              <span className="text-accent">{d.who}：</span>
+              <span className={genderOf(d.who) === "m" ? "text-male" : "text-female"}>
+                {d.who}：
+              </span>
               {d.line}
             </p>
           ))}
+
         </div>
       </div>
 
