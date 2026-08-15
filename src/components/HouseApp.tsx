@@ -27,6 +27,8 @@ import {
   meAvatar,
   profile,
   storyTimeline,
+  journey,
+  currentDay,
   chatTopics,
   replyOf,
   type Scene,
@@ -1159,5 +1161,82 @@ function TabBar({
         })}
       </ul>
     </nav>
+  );
+}
+
+/** 7 天旅程时间轴 */
+function JourneyTimeline() {
+  const [open, setOpen] = useState<number | null>(currentDay);
+  return (
+    <section className="mt-5 px-5">
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-sm font-medium">7 天旅程</h2>
+        <span className="text-[11px] text-muted-foreground">Day {currentDay} / 7</span>
+      </div>
+
+      <div className="mt-3 flex items-center gap-1">
+        {journey.map((d) => {
+          const state = d.day < currentDay ? "past" : d.day === currentDay ? "now" : "future";
+          return (
+            <button
+              key={d.day}
+              onClick={() => setOpen(open === d.day ? null : d.day)}
+              className="group flex flex-1 flex-col items-center gap-1.5"
+            >
+              <span className="flex w-full items-center">
+                <span
+                  className={`h-[2px] flex-1 ${state === "future" ? "bg-border" : "bg-primary/60"} ${
+                    d.day === 1 ? "opacity-0" : ""
+                  }`}
+                />
+                <span
+                  className={`relative grid size-6 shrink-0 place-items-center rounded-full border text-[10px] transition-transform group-active:scale-95 ${
+                    state === "now"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : state === "past"
+                        ? "border-primary/50 bg-primary/15 text-primary"
+                        : "border-border text-muted-foreground"
+                  } ${open === d.day ? "ring-2 ring-primary/40" : ""}`}
+                >
+                  {state === "past" ? <Check className="size-3" /> : d.day}
+                  {state === "now" && (
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/40" />
+                  )}
+                </span>
+                <span
+                  className={`h-[2px] flex-1 ${d.day < currentDay ? "bg-primary/60" : "bg-border"} ${
+                    d.day === journey.length ? "opacity-0" : ""
+                  }`}
+                />
+              </span>
+              <span
+                className={`text-[10px] ${
+                  state === "now" ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {d.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {open !== null && (
+        <div className="mt-3 rounded-2xl glass-card p-4 animate-fade-in">
+          <div className="flex items-baseline gap-2">
+            <span className="text-[11px] tracking-[0.2em] text-muted-foreground">
+              DAY {String(open).padStart(2, "0")}
+            </span>
+            <span className="text-sm font-medium">{journey[open - 1]!.title}</span>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            {journey[open - 1]!.desc}
+          </p>
+          <p className="mt-2 text-[11px] text-accent">
+            {open < currentDay ? "已经过去" : open === currentDay ? "正在进行" : "还没发生"}
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
