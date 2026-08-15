@@ -437,3 +437,24 @@ export const heartTrend = (a: Affinity): { day: string; value: number }[] => {
     return { day: m.day, value: v };
   });
 };
+
+/** 7 天旅程时间轴：整段体验的节奏 */
+export type JourneyDay = {
+  day: number;
+  label: string;
+  title: string;
+  desc: string;
+};
+
+/** 当前进行到第几天 */
+export const currentDay = 4;
+
+export const journey: JourneyDay[] = [
+  { day: 1, label: "初见", title: "十个人住进小屋", desc: "自我介绍、第一印象，谁也没敢先开口。" },
+  { day: 2, label: "试探", title: "第一次共同任务", desc: "一起做饭、一起收拾，距离在无意中缩短。" },
+  { day: 3, label: "分歧", title: "选择开始有代价", desc: "有人被落下，有人第一次觉得不甘心。" },
+  { day: 4, label: "靠近", title: "厨房里的十二分钟", desc: "三件事之后，你可以主动私聊想见的人。" },
+  { day: 5, label: "约会", title: "两人一组，60 分钟独处", desc: "城南旧书店，名单由昨晚的心动抉择决定。" },
+  { day: 6, label: "摊牌", title: "把没说的话说出来", desc: "秘密开始流动，关系被重新排列。" },
+  { day: 7, label: "告白", title: "最后一夜的选择", desc: "只能牵一个人的手，走出小屋。" },
+];
