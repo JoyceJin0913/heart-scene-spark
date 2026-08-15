@@ -374,6 +374,10 @@ function HomeView({
         })}
       </section>
 
+      <JourneyTimeline />
+
+
+
       {/* 成员名单：按房间分组，图外展示 */}
       <section className="mt-4 px-5">
         <div className="flex items-center justify-between">
