@@ -1,4 +1,5 @@
-import { ChevronLeft, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ChevronLeft, Sparkles, Share2, X } from "lucide-react";
 
 import {
   finaleStats,
@@ -8,15 +9,20 @@ import {
   finaleSelfTags,
   finaleObservedTags,
   finaleVerdict,
+  finaleSlogan,
+  posterHighlights,
+  meAvatar,
   avatarOf,
 } from "@/data/house";
 
 /** 7 天结束后的结语档案：客观记录 · 关系 · 性格分析 */
 export function FinaleReport({ onClose }: { onClose: () => void }) {
+  const [poster, setPoster] = useState(false);
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-background animate-fade-in">
       <div className="mx-auto min-h-full w-full max-w-md pb-16">
-        {/* 封面 */}
+        {/* 封面 · Slogan */}
         <header className="relative px-6 pt-10 text-center">
           <button
             onClick={onClose}
@@ -26,14 +32,28 @@ export function FinaleReport({ onClose }: { onClose: () => void }) {
             <ChevronLeft className="size-4" />
           </button>
           <p className="text-[11px] tracking-[0.35em] text-muted-foreground">DAY 01 — DAY 07</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-[0.2em] text-primary">七日结语</h1>
+
+          <h1 className="mt-6 text-[30px] font-semibold leading-[1.25] tracking-tight text-foreground">
+            「{finaleSlogan.line}」
+          </h1>
+          <p className="mt-3 text-[10px] tracking-[0.3em] text-primary">{finaleSlogan.sub}</p>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            这是小屋为你保留的一份记录。
-            <br />
-            没有评判，只有发生过的事。
+            {finaleSlogan.desc}
           </p>
+
+          <button
+            onClick={() => setPoster(true)}
+            className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-transform active:scale-95"
+          >
+            <Share2 className="size-3.5" />
+            生成分享海报
+          </button>
+
           <div className="mx-auto mt-6 h-px w-16 bg-primary/40" />
         </header>
+
+        {poster && <SharePoster onClose={() => setPoster(false)} />}
+
 
         {/* 01 客观记录 */}
         <Section index="01" title="客观记录" desc="这七天里，确实发生过的数字。">
