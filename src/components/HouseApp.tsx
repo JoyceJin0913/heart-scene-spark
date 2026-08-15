@@ -36,6 +36,8 @@ import {
   type Member,
 } from "@/data/house";
 import { RoomNight } from "@/components/RoomNight";
+import { FinaleReport } from "@/components/FinaleReport";
+
 
 
 type TabKey = "house" | "relationships" | "me";
