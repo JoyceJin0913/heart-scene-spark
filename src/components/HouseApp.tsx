@@ -1167,6 +1167,8 @@ function TabBar({
 /** 7 天旅程时间轴 */
 function JourneyTimeline() {
   const [open, setOpen] = useState<number | null>(currentDay);
+  const [finale, setFinale] = useState(false);
+
   return (
     <section className="mt-5 px-5">
       <div className="flex items-baseline justify-between">
