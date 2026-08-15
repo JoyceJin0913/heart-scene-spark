@@ -1237,8 +1237,19 @@ function JourneyTimeline() {
           <p className="mt-2 text-[11px] text-accent">
             {open < currentDay ? "已经过去" : open === currentDay ? "正在进行" : "还没发生"}
           </p>
+          {open === journey.length && (
+            <button
+              onClick={() => setFinale(true)}
+              className="mt-3 w-full rounded-xl bg-primary py-2.5 text-xs font-medium text-primary-foreground transition-transform active:scale-[0.98]"
+            >
+              查看七日结语 · 你的小屋档案
+            </button>
+          )}
         </div>
       )}
+
+      {finale && <FinaleReport onClose={() => setFinale(false)} />}
     </section>
   );
 }
+
