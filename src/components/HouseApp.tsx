@@ -46,6 +46,7 @@ type Picked = Record<string, Choice["key"]>;
 export type ChatLogEntry = { name: string; label: string; say: string; reply: string };
 
 const STORY_KEY = "house-story-progress-day04";
+const PLAYER_KEY = "house-player-setup";
 
 type StoryProgress = { index: number; done: boolean };
 
