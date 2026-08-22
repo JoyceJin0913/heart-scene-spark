@@ -70,9 +70,16 @@ export function HouseApp() {
   const [progress, setProgress] = useState<StoryProgress>({ index: 0, done: false });
   const [inRoom, setInRoom] = useState(false);
   const [dayEndSeen, setDayEndSeen] = useState(false);
+  const [player, setPlayer] = useState<PlayerSetup | null>(null);
 
   useEffect(() => {
     setProgress(loadProgress());
+    try {
+      const raw = window.localStorage.getItem(PLAYER_KEY);
+      if (raw) setPlayer(JSON.parse(raw) as PlayerSetup);
+    } catch {
+      /* ignore */
+    }
     setHydrated(true);
   }, []);
 
@@ -89,8 +96,28 @@ export function HouseApp() {
   const talkedCount = new Set(chatLog.map((c) => c.name)).size;
   const showDayEnd = tab === "house" && !inStory && !inRoom && !dayEndSeen && talkedCount >= 3;
 
+  if (!hydrated) return <div className="min-h-screen bg-background" />;
+
+  if (!player) {
+    return (
+      <div className="relative mx-auto w-full max-w-md bg-background">
+        <Onboarding
+          onStart={(p) => {
+            setPlayer(p);
+            try {
+              window.localStorage.setItem(PLAYER_KEY, JSON.stringify(p));
+            } catch {
+              /* ignore */
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
+
       <div className={inStory ? "flex-1" : "flex-1 pb-24"}>
         {tab === "house" &&
           (inStory ? (
