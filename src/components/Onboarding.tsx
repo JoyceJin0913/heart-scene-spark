@@ -167,8 +167,8 @@ function Field({
   children,
 }: {
   label: string;
-  hint?: string;
-  filled?: boolean;
+  hint?: string | undefined;
+  filled?: boolean | undefined;
   children: React.ReactNode;
 }) {
   return (
