@@ -37,6 +37,7 @@ import {
 } from "@/data/house";
 import { RoomNight } from "@/components/RoomNight";
 import { FinaleReport } from "@/components/FinaleReport";
+import { Onboarding, type PlayerSetup } from "@/components/Onboarding";
 
 
 
