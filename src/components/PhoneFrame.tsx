@@ -1,27 +1,36 @@
 import { useEffect, useState } from "react";
 
 /**
- * Wraps the app in a phone mockup on large screens.
- * On small screens the app renders full-bleed as usual.
+ * Wraps the app in a phone mockup on non-phone screens.
+ * On narrow (real phone) screens the app renders full-bleed as usual.
  */
 export function PhoneFrame({ children }: { children: React.ReactNode }) {
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [framed, setFramed] = useState(false);
+  const [scale, setScale] = useState(1);
 
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 900px)");
-    const update = () => setIsDesktop(mq.matches);
+    const update = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const on = w >= 620;
+      setFramed(on);
+      if (on) {
+        // frame outer size ~ 414 x 868, keep some breathing room
+        setScale(Math.min(1, (w - 48) / 414, (h - 48) / 868));
+      }
+    };
     update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
-  if (!isDesktop) return <>{children}</>;
+  if (!framed) return <>{children}</>;
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[radial-gradient(120%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_60%)] p-8">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[radial-gradient(120%_100%_at_50%_0%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_60%)] p-4">
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[820px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
 
-      <div className="relative">
+      <div className="relative" style={{ transform: `scale(${scale})`, transformOrigin: "center" }}>
         {/* device frame */}
         <div className="relative rounded-[3.2rem] bg-[#0b0709] p-[12px] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)]">
           <div className="pointer-events-none absolute inset-0 rounded-[3.2rem] ring-1 ring-inset ring-white/10" />
