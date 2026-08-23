@@ -213,7 +213,6 @@ function CastPicker({
   const [picked, setPicked] = useState<string[]>([]);
   const full = picked.length >= NEED;
   const isFemale = playerGender === "m";
-  const accent = isFemale ? "female" : "male";
 
   const toggle = (n: string) =>
     setPicked((p) =>
@@ -244,7 +243,9 @@ function CastPicker({
         <span
           className={`rounded-full px-3 py-1 text-[12px] tabular-nums font-medium ${
             full
-              ? `bg-${accent}/15 text-${accent}`
+              ? isFemale
+                ? "bg-female/15 text-female"
+                : "bg-male/15 text-male"
               : "bg-secondary/60 text-muted-foreground"
           }`}
         >
