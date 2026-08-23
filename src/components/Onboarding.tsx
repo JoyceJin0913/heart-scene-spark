@@ -156,19 +156,17 @@ export function Onboarding({ onStart }: { onStart: (p: PlayerSetup) => void }) {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-7 pt-8">
         <button
           disabled={!ready}
-          onClick={() =>
-            ready &&
-            onStart({ name: name.trim(), gender: gender!, age: age!, zodiac: zodiac! })
-          }
+          onClick={() => ready && setStep("cast")}
           className={`pointer-events-auto flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-medium transition-all active:scale-[0.98] ${
             ready
               ? "bg-gradient-to-r from-female to-primary text-background shadow-[0_12px_40px_-12px_color-mix(in_oklab,var(--female)_80%,transparent)]"
               : "cursor-not-allowed bg-secondary/50 text-muted-foreground"
           }`}
         >
-          {ready ? "进入心动岛" : "先把上面填完"}
+          {ready ? "下一步 · 选择阵容" : "先把上面填完"}
           {ready && <ArrowRight className="size-4" />}
         </button>
+
         <p className="mt-3 text-center text-[11px] text-muted-foreground">
           七天旅程 · 每天 3 件事 · 结果决定你的心动档案
         </p>
