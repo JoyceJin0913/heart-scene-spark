@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Heart, ArrowRight, Check } from "lucide-react";
+import { Heart, ArrowRight, Check, Sparkles, ChevronLeft } from "lucide-react";
+import { candidates } from "@/data/house";
 
 export type PlayerSetup = {
   name: string;
   gender: "m" | "f";
   age: number;
   zodiac: string;
+  cast?: string[];
 };
+
 
 const ZODIACS = [
   "白羊",
@@ -30,11 +33,25 @@ export function Onboarding({ onStart }: { onStart: (p: PlayerSetup) => void }) {
   const [gender, setGender] = useState<"m" | "f" | null>(null);
   const [age, setAge] = useState<number | null>(null);
   const [zodiac, setZodiac] = useState<string | null>(null);
+  const [step, setStep] = useState<"basic" | "cast">("basic");
 
   const done = [name.trim().length > 0, !!gender, !!age, !!zodiac];
   const ready = done.every(Boolean);
 
+  if (step === "cast" && gender) {
+    return (
+      <CastPicker
+        playerGender={gender}
+        onBack={() => setStep("basic")}
+        onDone={(cast) =>
+          onStart({ name: name.trim(), gender, age: age!, zodiac: zodiac!, cast })
+        }
+      />
+    );
+  }
+
   return (
+
     <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-background">
       {/* ambient glow */}
       <div className="pointer-events-none absolute -top-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-female/25 blur-[90px]" />
@@ -139,19 +156,17 @@ export function Onboarding({ onStart }: { onStart: (p: PlayerSetup) => void }) {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-7 pt-8">
         <button
           disabled={!ready}
-          onClick={() =>
-            ready &&
-            onStart({ name: name.trim(), gender: gender!, age: age!, zodiac: zodiac! })
-          }
+          onClick={() => ready && setStep("cast")}
           className={`pointer-events-auto flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-medium transition-all active:scale-[0.98] ${
             ready
               ? "bg-gradient-to-r from-female to-primary text-background shadow-[0_12px_40px_-12px_color-mix(in_oklab,var(--female)_80%,transparent)]"
               : "cursor-not-allowed bg-secondary/50 text-muted-foreground"
           }`}
         >
-          {ready ? "进入心动岛" : "先把上面填完"}
+          {ready ? "下一步 · 选择阵容" : "先把上面填完"}
           {ready && <ArrowRight className="size-4" />}
         </button>
+
         <p className="mt-3 text-center text-[11px] text-muted-foreground">
           七天旅程 · 每天 3 件事 · 结果决定你的心动档案
         </p>
@@ -180,5 +195,165 @@ function Field({
       </div>
       {children}
     </section>
+  );
+}
+
+const NEED = 5;
+
+function CastPicker({
+  playerGender,
+  onBack,
+  onDone,
+}: {
+  playerGender: "m" | "f";
+  onBack: () => void;
+  onDone: (cast: string[]) => void;
+}) {
+  const pool = candidates.filter((c) => c.gender !== playerGender);
+  const [picked, setPicked] = useState<string[]>([]);
+  const full = picked.length >= NEED;
+  const isFemale = playerGender === "m";
+
+  const toggle = (n: string) =>
+    setPicked((p) =>
+      p.includes(n) ? p.filter((x) => x !== n) : p.length >= NEED ? p : [...p, n],
+    );
+
+  return (
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-background">
+      <div
+        className={`pointer-events-none absolute -top-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full blur-[90px] ${
+          isFemale ? "bg-female/20" : "bg-male/20"
+        }`}
+      />
+
+      <header className="relative flex items-center gap-3 px-6 pb-2 pt-8">
+        <button
+          onClick={onBack}
+          className="grid size-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-secondary/50"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-[15px] font-semibold">选择你的小屋阵容</h1>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            挑 5 位一起住进心动岛，契合度只是参考
+          </p>
+        </div>
+        <span
+          className={`rounded-full px-3 py-1 text-[12px] tabular-nums font-medium ${
+            full
+              ? isFemale
+                ? "bg-female/15 text-female"
+                : "bg-male/15 text-male"
+              : "bg-secondary/60 text-muted-foreground"
+          }`}
+        >
+          {picked.length}/{NEED}
+        </span>
+      </header>
+
+      <div className="relative flex-1 space-y-3 overflow-y-auto px-6 pb-32 pt-4">
+        {pool.map((c) => {
+          const on = picked.includes(c.name);
+          const high = c.match >= 82;
+          return (
+            <button
+              key={c.name}
+              onClick={() => toggle(c.name)}
+              className={`w-full rounded-3xl border p-4 text-left transition-all active:scale-[0.99] ${
+                on
+                  ? isFemale
+                    ? "border-female bg-female/10"
+                    : "border-male bg-male/10"
+                  : "border-border bg-card/60 hover:bg-secondary/30"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <span
+                  className={`grid size-12 shrink-0 place-items-center rounded-2xl border text-base font-semibold ${
+                    isFemale
+                      ? "border-female/60 bg-female/15 text-female"
+                      : "border-male/60 bg-male/15 text-male"
+                  }`}
+                >
+                  {c.name.slice(0, 1)}
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[15px] font-medium">{c.name}</h2>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      {c.age} · {c.mbti}
+                    </span>
+                    <span
+                      className={`ml-auto grid size-5 place-items-center rounded-full border transition-colors ${
+                        on
+                          ? isFemale
+                            ? "border-female bg-female text-background"
+                            : "border-male bg-male text-background"
+                          : "border-border"
+                      }`}
+                    >
+                      {on && <Check className="size-3" strokeWidth={3} />}
+                    </span>
+                  </div>
+
+                  <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
+                    {c.tagline}
+                  </p>
+
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] tabular-nums ${
+                        high
+                          ? "bg-female/15 text-female"
+                          : "bg-accent/15 text-accent"
+                      }`}
+                    >
+                      {high ? "高契合" : "反差吸引"} {c.match}%
+                    </span>
+                    <span className="rounded-full bg-secondary/70 px-2 py-0.5 text-[11px] text-secondary-foreground">
+                      {c.attachment}
+                    </span>
+                    {c.traits.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+
+                  <p className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-relaxed text-accent">
+                    <Sparkles className="mt-[1px] size-3 shrink-0" />
+                    {c.bonus}
+                  </p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-7 pt-8">
+        <button
+          disabled={!full}
+          onClick={() => full && onDone(picked)}
+          className={`pointer-events-auto flex w-full items-center justify-center gap-2 rounded-full py-4 text-sm font-medium transition-all active:scale-[0.98] ${
+            full
+              ? "bg-gradient-to-r from-female to-primary text-background shadow-[0_12px_40px_-12px_color-mix(in_oklab,var(--female)_80%,transparent)]"
+              : "cursor-not-allowed bg-secondary/50 text-muted-foreground"
+          }`}
+        >
+          {full ? "进入心动岛" : `还需选择 ${NEED - picked.length} 位`}
+          {full && <ArrowRight className="size-4" />}
+        </button>
+        <p className="mt-3 text-center text-[11px] text-muted-foreground">
+          阵容会影响每天发生的事件与私聊对象
+        </p>
+      </div>
+    </div>
   );
 }
