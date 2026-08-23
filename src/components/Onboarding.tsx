@@ -33,11 +33,25 @@ export function Onboarding({ onStart }: { onStart: (p: PlayerSetup) => void }) {
   const [gender, setGender] = useState<"m" | "f" | null>(null);
   const [age, setAge] = useState<number | null>(null);
   const [zodiac, setZodiac] = useState<string | null>(null);
+  const [step, setStep] = useState<"basic" | "cast">("basic");
 
   const done = [name.trim().length > 0, !!gender, !!age, !!zodiac];
   const ready = done.every(Boolean);
 
+  if (step === "cast" && gender) {
+    return (
+      <CastPicker
+        playerGender={gender}
+        onBack={() => setStep("basic")}
+        onDone={(cast) =>
+          onStart({ name: name.trim(), gender, age: age!, zodiac: zodiac!, cast })
+        }
+      />
+    );
+  }
+
   return (
+
     <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-background">
       {/* ambient glow */}
       <div className="pointer-events-none absolute -top-28 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-female/25 blur-[90px]" />
