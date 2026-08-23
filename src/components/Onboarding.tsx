@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Heart, ArrowRight, Check } from "lucide-react";
+import { Heart, ArrowRight, Check, Sparkles, ChevronLeft } from "lucide-react";
+import { candidates } from "@/data/house";
 
 export type PlayerSetup = {
   name: string;
   gender: "m" | "f";
   age: number;
   zodiac: string;
+  cast?: string[];
 };
+
 
 const ZODIACS = [
   "白羊",
