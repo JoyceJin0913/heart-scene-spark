@@ -606,3 +606,31 @@ export const posterHighlights: { k: string; v: string }[] = [
   { k: "最长沉默", v: "12 分钟" },
   { k: "最终只牵", v: "1 个人" },
 ];
+
+/** 入口页：可选嘉宾阵容 */
+export type Candidate = {
+  name: string;
+  gender: Gender;
+  age: number;
+  mbti: string;
+  match: number;
+  attachment: string;
+  tagline: string;
+  traits: string[];
+  bonus: string;
+};
+
+export const candidates: Candidate[] = [
+  { name: "林一", gender: "m", age: 27, mbti: "INFJ", match: 92, attachment: "安全型", tagline: "话不多，但记得你说过的每一件小事。", traits: ["温和", "细节控", "会照顾人"], bonus: "和「慢热」的你高度契合" },
+  { name: "周叙", gender: "m", age: 30, mbti: "ENTJ", match: 74, attachment: "回避型", tagline: "习惯掌控节奏，很少让人看见犹豫。", traits: ["强势", "有主见", "工作狂"], bonus: "反差吸引：会推着你往前一步" },
+  { name: "沈知", gender: "m", age: 26, mbti: "ISFP", match: 85, attachment: "焦虑型", tagline: "喜欢在深夜给你发一首歌，然后撤回。", traits: ["敏感", "浪漫", "创作型"], bonus: "情绪共振高，但需要你先给安全感" },
+  { name: "陆野", gender: "m", age: 29, mbti: "ESTP", match: 68, attachment: "安全型", tagline: "户外派，认识三小时就敢喊你去看日出。", traits: ["直接", "热烈", "行动派"], bonus: "反差吸引：把你从舒适区拽出来" },
+  { name: "江郁", gender: "m", age: 28, mbti: "INTP", match: 80, attachment: "回避型", tagline: "能陪你安静两小时，也不觉得尴尬。", traits: ["理性", "独立", "冷幽默"], bonus: "同频沉默，适合长期消耗低的关系" },
+  { name: "顾昀", gender: "m", age: 31, mbti: "ENFP", match: 77, attachment: "焦虑型", tagline: "情绪外放，喜欢就一定会让你知道。", traits: ["热情", "会哄人", "善变"], bonus: "会主动打破你的防线" },
+  { name: "苏杳", gender: "f", age: 26, mbti: "ENFP", match: 90, attachment: "安全型", tagline: "笑起来很吵，安静下来最难猜。", traits: ["外向", "共情强", "爱冒险"], bonus: "和「不擅长表达」的你互补" },
+  { name: "温宁", gender: "f", age: 28, mbti: "ISFJ", match: 88, attachment: "焦虑型", tagline: "会把你随口说的话认真放进日程里。", traits: ["温柔", "耐心", "怕麻烦别人"], bonus: "高契合：你们都在等对方先开口" },
+  { name: "许佳", gender: "f", age: 25, mbti: "ESTJ", match: 71, attachment: "回避型", tagline: "有话直说，讨厌暧昧不清的关系。", traits: ["爽快", "边界感强", "现实"], bonus: "反差吸引：帮你把话说明白" },
+  { name: "白露", gender: "f", age: 27, mbti: "INFP", match: 83, attachment: "焦虑型", tagline: "把喜欢写成便签，但从来不贴出去。", traits: ["内向", "文艺", "多想"], bonus: "同类相吸，也可能一起沉默到底" },
+  { name: "夏可", gender: "f", age: 24, mbti: "ESFP", match: 69, attachment: "安全型", tagline: "永远是小屋里第一个提议出门的人。", traits: ["活泼", "自来熟", "情绪稳定"], bonus: "反差吸引：让日常变得热闹" },
+  { name: "陈栖", gender: "f", age: 29, mbti: "INTJ", match: 79, attachment: "回避型", tagline: "分析感情像分析项目，但会为你破例。", traits: ["清醒", "独立", "话少"], bonus: "节奏相近，不会催你" },
+];
