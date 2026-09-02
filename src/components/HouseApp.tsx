@@ -160,7 +160,6 @@ export function HouseApp() {
             <button
               onClick={() => {
                 setDayEndSeen(true);
-                setOpenScene(null);
                 setInRoom(true);
               }}
               className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
@@ -278,81 +277,17 @@ function StoryFlow({
   );
 }
 
-function HouseContent({
-  openScene,
-  picked,
-  chatLog,
-  onLog,
-  onOpen,
-  onPick,
-  onBack,
-  onReplay,
-  canEnterRoom,
-  onEnterRoom,
-}: {
-  openScene: Scene | null;
-  picked: Picked;
-  chatLog: ChatLogEntry[];
-  onLog: (e: ChatLogEntry) => void;
-  onOpen: (s: Scene) => void;
-  onPick: (id: string, k: Choice["key"]) => void;
-  onBack: () => void;
-  onReplay: () => void;
-  canEnterRoom: boolean;
-  onEnterRoom: () => void;
-}) {
-  if (openScene) {
-    return (
-      <SceneView
-        scene={openScene}
-        picked={picked[openScene.id]}
-        onPick={(k) => onPick(openScene.id, k)}
-        onBack={onBack}
-      />
-    );
-  }
-
-  return (
-    <HomeView
-      picked={picked}
-      chatLog={chatLog}
-      onLog={onLog}
-      onOpen={onOpen}
-      onReplay={onReplay}
-      canEnterRoom={canEnterRoom}
-      onEnterRoom={onEnterRoom}
-    />
-  );
-}
-
-
-
-const ROOMS = ["客厅", "厨房", "阳台"] as const;
-
 function HomeView({
-  picked,
-  chatLog,
   onLog,
-  onOpen,
-  onReplay,
   canEnterRoom,
   onEnterRoom,
 }: {
-  picked: Picked;
-  chatLog: ChatLogEntry[];
   onLog: (e: ChatLogEntry) => void;
-  onOpen: (s: Scene) => void;
-  onReplay: () => void;
   canEnterRoom: boolean;
   onEnterRoom: () => void;
-
 }) {
-  const allScenes = scenes;
   const hero = scenes[1]!;
-  const [who, setWho] = useState<Member | null>(null);
   const [chatWith, setChatWith] = useState<Member | null>(null);
-
-
 
   return (
     <div>
