@@ -316,123 +316,55 @@ function HomeView({
 
 
 
-      {/* 成员名单：按房间分组，图外展示 */}
-      <section className="mt-4 px-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium">此刻他们在哪</h2>
+      {/* 发起私聊：全员平铺 */}
+      <section className="mt-6 px-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-medium">发起私聊</h2>
           <span className="text-[11px] text-muted-foreground">5 男 · 5 女</span>
         </div>
-        <div className="mt-3 space-y-2.5">
-          {ROOMS.map((room) => {
-            const list = members.filter((m) => m.where.slice(1) === room);
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          小屋安静下来了，挑一个想聊的人说几句话吧
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          {members.map((m) => {
+            const tone = m.gender === "m" ? "text-male" : "text-female";
+            const ring = m.gender === "m" ? "ring-male/40" : "ring-female/40";
+            const aff = affinities.find((a) => a.name === m.name);
             return (
-              <div key={room} className="flex items-center gap-3">
-                <span className="w-10 shrink-0 text-[11px] text-muted-foreground">{room}</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {list.map((m) => (
-                    <button
-                      key={m.name}
-                      onClick={() => setWho(m)}
-                      className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
-                        m.gender === "m"
-                          ? "border-male/40 text-male hover:bg-male/10"
-                          : "border-female/40 text-female hover:bg-female/10"
-                      }`}
-                    >
-                      {m.name}
-                    </button>
-                  ))}
+              <div
+                key={m.name}
+                className="flex flex-col items-center gap-2 rounded-2xl glass-card p-3.5"
+              >
+                {m.avatar ? (
+                  <img
+                    src={m.avatar}
+                    alt={m.name}
+                    loading="lazy"
+                    className={`size-14 rounded-full object-cover ring-2 ${ring}`}
+                  />
+                ) : (
+                  <span
+                    className={`grid size-14 place-items-center rounded-full bg-secondary text-lg ring-2 ${ring} ${tone}`}
+                  >
+                    {m.name[0]}
+                  </span>
+                )}
+                <div className="text-center">
+                  <p className={`text-sm font-semibold ${tone}`}>{m.name}</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    {m.gender === "m" ? "男生" : "女生"}
+                    {aff ? ` · 心动值 ${aff.value}` : ""}
+                  </p>
                 </div>
+                <button
+                  onClick={() => setChatWith(m)}
+                  className="inline-flex items-center gap-1 rounded-full bg-romance px-3.5 py-1.5 text-[11px] font-medium text-primary-foreground transition-transform active:scale-95"
+                >
+                  <MessageCircle className="size-3" /> 私聊
+                </button>
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* 三件事 */}
-      <section className="mt-6 px-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-base font-semibold">今天发生了</h2>
-        </div>
-
-        <h3 className="mt-3 text-sm font-medium text-accent">三件事</h3>
-        <ul className="mt-2 space-y-3">
-          {allScenes.map((s) => (
-            <li key={s.id}>
-              <button
-                onClick={() => onOpen(s)}
-                className="flex w-full items-center gap-3 rounded-2xl glass-card p-3 text-left transition-colors hover:bg-secondary/60"
-              >
-                <img
-                  src={s.image}
-                  alt={s.title}
-                  loading="lazy"
-                  width={1024}
-                  height={1280}
-                  className="size-14 shrink-0 rounded-xl object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{s.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {s.place} · {s.time}
-                  </p>
-                </div>
-                {picked[s.id] ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-[11px] text-accent">
-                    <Check className="size-3" /> 已看
-                  </span>
-                ) : (
-                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-                )}
-              </button>
-            </li>
-          ))}
-          {microEvents.map((e) => (
-            <li
-              key={e.time}
-              className="flex items-start gap-3 rounded-2xl border border-border/60 px-3 py-2.5"
-            >
-              <span className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">{e.time}</span>
-              <p className="text-xs leading-relaxed text-muted-foreground">{e.text}</p>
-            </li>
-          ))}
-        </ul>
-
-        <h3 className="mt-6 text-sm font-medium text-accent">发生的私聊记录</h3>
-        {chatLog.length === 0 ? (
-          <p className="mt-2 rounded-2xl border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground">
-            还没有私聊。点上面的名字，去和 TA 说句话。
-          </p>
-        ) : (
-          <ul className="mt-2 space-y-2">
-            {chatLog.map((c, i) => (
-              <li key={i} className="rounded-2xl glass-card p-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-medium ${
-                      genderOf(c.name) === "m" ? "text-male" : "text-female"
-                    }`}
-                  >
-                    你 × {c.name}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{c.label}</span>
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  「{c.reply}」
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-
-      <section className="mt-6 px-5">
-        <div className="rounded-2xl glass-card p-4">
-          <p className="text-xs tracking-widest text-accent">约会</p>
-          <p className="mt-1 text-sm font-medium">{dateCard.title}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{dateCard.time}</p>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{dateCard.desc}</p>
         </div>
       </section>
 
@@ -445,38 +377,18 @@ function HomeView({
             回到自己的房间
           </button>
         )}
-        <button
-          onClick={onReplay}
-          className="w-full rounded-full border border-border py-3 text-sm text-muted-foreground transition-colors hover:bg-secondary/60"
-        >
-          重看今天的三件事
-        </button>
       </div>
-
 
       <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
         自由活动中 · 可以私聊、逛小屋
       </p>
 
-
-      {who && !chatWith && (
-        <MemberSheet
-          member={who}
-          onClose={() => setWho(null)}
-          onOpen={onOpen}
-          onChat={() => setChatWith(who)}
-        />
-      )}
       {chatWith && (
         <ChatSheet
           member={chatWith}
           onLog={onLog}
-          onClose={() => {
-            setChatWith(null);
-            setWho(null);
-          }}
+          onClose={() => setChatWith(null)}
         />
-
       )}
     </div>
   );
