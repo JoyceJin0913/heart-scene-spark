@@ -64,7 +64,6 @@ function loadProgress(): StoryProgress {
 
 export function HouseApp() {
   const [tab, setTab] = useState<TabKey>("house");
-  const [openScene, setOpenScene] = useState<Scene | null>(null);
   const [picked, setPicked] = useState<Picked>({});
   const [chatLog, setChatLog] = useState<ChatLogEntry[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -132,20 +131,10 @@ export function HouseApp() {
           ) : inRoom ? (
             <RoomNight chatLog={chatLog} onLeave={() => setInRoom(false)} />
           ) : (
-            <HouseContent
-              openScene={openScene}
-              picked={picked}
-              chatLog={chatLog}
+            <HomeView
               onLog={(e) => setChatLog((l) => [...l, e])}
-              onOpen={(s) => setOpenScene(s)}
-              onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
-              onBack={() => setOpenScene(null)}
-              onReplay={() => saveProgress({ index: 0, done: false })}
               canEnterRoom={talkedCount >= 3}
-              onEnterRoom={() => {
-                setOpenScene(null);
-                setInRoom(true);
-              }}
+              onEnterRoom={() => setInRoom(true)}
             />
           ))}
         {tab === "relationships" && <RelationshipsView />}
