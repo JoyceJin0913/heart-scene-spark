@@ -14,9 +14,6 @@ import {
   storySequence,
   storyTransitions,
   members,
-  hotspots,
-  microEvents,
-  dateCard,
   genderOf,
   avatarOf,
   affinities,
@@ -64,7 +61,6 @@ function loadProgress(): StoryProgress {
 
 export function HouseApp() {
   const [tab, setTab] = useState<TabKey>("house");
-  const [openScene, setOpenScene] = useState<Scene | null>(null);
   const [picked, setPicked] = useState<Picked>({});
   const [chatLog, setChatLog] = useState<ChatLogEntry[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -132,20 +128,10 @@ export function HouseApp() {
           ) : inRoom ? (
             <RoomNight chatLog={chatLog} onLeave={() => setInRoom(false)} />
           ) : (
-            <HouseContent
-              openScene={openScene}
-              picked={picked}
-              chatLog={chatLog}
+            <HomeView
               onLog={(e) => setChatLog((l) => [...l, e])}
-              onOpen={(s) => setOpenScene(s)}
-              onPick={(id, k) => setPicked((p) => ({ ...p, [id]: k }))}
-              onBack={() => setOpenScene(null)}
-              onReplay={() => saveProgress({ index: 0, done: false })}
               canEnterRoom={talkedCount >= 3}
-              onEnterRoom={() => {
-                setOpenScene(null);
-                setInRoom(true);
-              }}
+              onEnterRoom={() => setInRoom(true)}
             />
           ))}
         {tab === "relationships" && <RelationshipsView />}
@@ -171,7 +157,6 @@ export function HouseApp() {
             <button
               onClick={() => {
                 setDayEndSeen(true);
-                setOpenScene(null);
                 setInRoom(true);
               }}
               className="mt-6 w-full rounded-full bg-primary py-3.5 text-sm font-medium text-primary-foreground transition-transform active:scale-[0.98]"
@@ -289,81 +274,17 @@ function StoryFlow({
   );
 }
 
-function HouseContent({
-  openScene,
-  picked,
-  chatLog,
-  onLog,
-  onOpen,
-  onPick,
-  onBack,
-  onReplay,
-  canEnterRoom,
-  onEnterRoom,
-}: {
-  openScene: Scene | null;
-  picked: Picked;
-  chatLog: ChatLogEntry[];
-  onLog: (e: ChatLogEntry) => void;
-  onOpen: (s: Scene) => void;
-  onPick: (id: string, k: Choice["key"]) => void;
-  onBack: () => void;
-  onReplay: () => void;
-  canEnterRoom: boolean;
-  onEnterRoom: () => void;
-}) {
-  if (openScene) {
-    return (
-      <SceneView
-        scene={openScene}
-        picked={picked[openScene.id]}
-        onPick={(k) => onPick(openScene.id, k)}
-        onBack={onBack}
-      />
-    );
-  }
-
-  return (
-    <HomeView
-      picked={picked}
-      chatLog={chatLog}
-      onLog={onLog}
-      onOpen={onOpen}
-      onReplay={onReplay}
-      canEnterRoom={canEnterRoom}
-      onEnterRoom={onEnterRoom}
-    />
-  );
-}
-
-
-
-const ROOMS = ["客厅", "厨房", "阳台"] as const;
-
 function HomeView({
-  picked,
-  chatLog,
   onLog,
-  onOpen,
-  onReplay,
   canEnterRoom,
   onEnterRoom,
 }: {
-  picked: Picked;
-  chatLog: ChatLogEntry[];
   onLog: (e: ChatLogEntry) => void;
-  onOpen: (s: Scene) => void;
-  onReplay: () => void;
   canEnterRoom: boolean;
   onEnterRoom: () => void;
-
 }) {
-  const allScenes = scenes;
   const hero = scenes[1]!;
-  const [who, setWho] = useState<Member | null>(null);
   const [chatWith, setChatWith] = useState<Member | null>(null);
-
-
 
   return (
     <div>
@@ -386,148 +307,61 @@ function HomeView({
           <p className="text-2xl font-semibold text-foreground drop-shadow">Day 04</p>
           <p className="mt-1 text-sm text-foreground/80">20:37 🌙</p>
         </div>
-
-        {hotspots.map((h) => {
-          const s = scenes.find((x) => x.id === h.sceneId);
-          if (!s) return null;
-          return (
-            <button
-              key={h.sceneId}
-              onClick={() => onOpen(s)}
-              style={{ top: h.top, left: h.left }}
-              className="absolute inline-flex items-center gap-2 rounded-full glass-card px-3 py-1.5 text-xs text-foreground transition-transform hover:scale-105 active:scale-95"
-            >
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/70" />
-                <span className="relative inline-flex size-2 rounded-full bg-primary" />
-              </span>
-              {h.label}
-            </button>
-          );
-        })}
       </section>
 
       <JourneyTimeline />
 
 
 
-      {/* 成员名单：按房间分组，图外展示 */}
-      <section className="mt-4 px-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium">此刻他们在哪</h2>
+      {/* 发起私聊：全员平铺 */}
+      <section className="mt-6 px-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-medium">发起私聊</h2>
           <span className="text-[11px] text-muted-foreground">5 男 · 5 女</span>
         </div>
-        <div className="mt-3 space-y-2.5">
-          {ROOMS.map((room) => {
-            const list = members.filter((m) => m.where.slice(1) === room);
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          小屋安静下来了，挑一个想聊的人说几句话吧
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          {members.map((m) => {
+            const tone = m.gender === "m" ? "text-male" : "text-female";
+            const ring = m.gender === "m" ? "ring-male/40" : "ring-female/40";
+            const aff = affinities.find((a) => a.name === m.name);
             return (
-              <div key={room} className="flex items-center gap-3">
-                <span className="w-10 shrink-0 text-[11px] text-muted-foreground">{room}</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {list.map((m) => (
-                    <button
-                      key={m.name}
-                      onClick={() => setWho(m)}
-                      className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
-                        m.gender === "m"
-                          ? "border-male/40 text-male hover:bg-male/10"
-                          : "border-female/40 text-female hover:bg-female/10"
-                      }`}
-                    >
-                      {m.name}
-                    </button>
-                  ))}
+              <div
+                key={m.name}
+                className="flex flex-col items-center gap-2 rounded-2xl glass-card p-3.5"
+              >
+                {m.avatar ? (
+                  <img
+                    src={m.avatar}
+                    alt={m.name}
+                    loading="lazy"
+                    className={`size-14 rounded-full object-cover ring-2 ${ring}`}
+                  />
+                ) : (
+                  <span
+                    className={`grid size-14 place-items-center rounded-full bg-secondary text-lg ring-2 ${ring} ${tone}`}
+                  >
+                    {m.name[0]}
+                  </span>
+                )}
+                <div className="text-center">
+                  <p className={`text-sm font-semibold ${tone}`}>{m.name}</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    {m.gender === "m" ? "男生" : "女生"}
+                    {aff ? ` · 心动值 ${aff.value}` : ""}
+                  </p>
                 </div>
+                <button
+                  onClick={() => setChatWith(m)}
+                  className="inline-flex items-center gap-1 rounded-full bg-romance px-3.5 py-1.5 text-[11px] font-medium text-primary-foreground transition-transform active:scale-95"
+                >
+                  <MessageCircle className="size-3" /> 私聊
+                </button>
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* 三件事 */}
-      <section className="mt-6 px-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-base font-semibold">今天发生了</h2>
-        </div>
-
-        <h3 className="mt-3 text-sm font-medium text-accent">三件事</h3>
-        <ul className="mt-2 space-y-3">
-          {allScenes.map((s) => (
-            <li key={s.id}>
-              <button
-                onClick={() => onOpen(s)}
-                className="flex w-full items-center gap-3 rounded-2xl glass-card p-3 text-left transition-colors hover:bg-secondary/60"
-              >
-                <img
-                  src={s.image}
-                  alt={s.title}
-                  loading="lazy"
-                  width={1024}
-                  height={1280}
-                  className="size-14 shrink-0 rounded-xl object-cover"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{s.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {s.place} · {s.time}
-                  </p>
-                </div>
-                {picked[s.id] ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-[11px] text-accent">
-                    <Check className="size-3" /> 已看
-                  </span>
-                ) : (
-                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-                )}
-              </button>
-            </li>
-          ))}
-          {microEvents.map((e) => (
-            <li
-              key={e.time}
-              className="flex items-start gap-3 rounded-2xl border border-border/60 px-3 py-2.5"
-            >
-              <span className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">{e.time}</span>
-              <p className="text-xs leading-relaxed text-muted-foreground">{e.text}</p>
-            </li>
-          ))}
-        </ul>
-
-        <h3 className="mt-6 text-sm font-medium text-accent">发生的私聊记录</h3>
-        {chatLog.length === 0 ? (
-          <p className="mt-2 rounded-2xl border border-dashed border-border/60 px-3 py-4 text-center text-xs text-muted-foreground">
-            还没有私聊。点上面的名字，去和 TA 说句话。
-          </p>
-        ) : (
-          <ul className="mt-2 space-y-2">
-            {chatLog.map((c, i) => (
-              <li key={i} className="rounded-2xl glass-card p-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-medium ${
-                      genderOf(c.name) === "m" ? "text-male" : "text-female"
-                    }`}
-                  >
-                    你 × {c.name}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{c.label}</span>
-                </div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  「{c.reply}」
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-
-      <section className="mt-6 px-5">
-        <div className="rounded-2xl glass-card p-4">
-          <p className="text-xs tracking-widest text-accent">约会</p>
-          <p className="mt-1 text-sm font-medium">{dateCard.title}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{dateCard.time}</p>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{dateCard.desc}</p>
         </div>
       </section>
 
@@ -540,129 +374,19 @@ function HomeView({
             回到自己的房间
           </button>
         )}
-        <button
-          onClick={onReplay}
-          className="w-full rounded-full border border-border py-3 text-sm text-muted-foreground transition-colors hover:bg-secondary/60"
-        >
-          重看今天的三件事
-        </button>
       </div>
-
 
       <p className="px-5 py-6 text-center text-[11px] text-muted-foreground">
         自由活动中 · 可以私聊、逛小屋
       </p>
 
-
-      {who && !chatWith && (
-        <MemberSheet
-          member={who}
-          onClose={() => setWho(null)}
-          onOpen={onOpen}
-          onChat={() => setChatWith(who)}
-        />
-      )}
       {chatWith && (
         <ChatSheet
           member={chatWith}
           onLog={onLog}
-          onClose={() => {
-            setChatWith(null);
-            setWho(null);
-          }}
+          onClose={() => setChatWith(null)}
         />
-
       )}
-    </div>
-  );
-}
-
-function MemberSheet({
-  member,
-  onClose,
-  onOpen,
-  onChat,
-}: {
-  member: Member;
-  onClose: () => void;
-  onOpen: (s: Scene) => void;
-  onChat: () => void;
-}) {
-  const room = member.where.slice(1);
-  const scene = scenes.find((s) => s.place === room);
-  const aff = affinities.find((a) => a.name === member.name);
-  const rel = aff
-    ? { desc: aff.status, meta: aff.moments[aff.moments.length - 1]?.text ?? "", value: aff.value }
-    : undefined;
-  const tone = member.gender === "m" ? "text-male" : "text-female";
-
-  return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-background/70 backdrop-blur-sm">
-      <button className="absolute inset-0" aria-label="关闭" onClick={onClose} />
-      <div className="relative mx-auto w-full max-w-md rounded-t-3xl border-t border-border bg-card p-5 pb-28">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
-        <div className="flex items-center gap-3">
-          {member.avatar ? (
-            <img
-              src={member.avatar}
-              alt={member.name}
-              className="size-14 rounded-full object-cover"
-            />
-          ) : (
-            <span
-              className={`grid size-14 place-items-center rounded-full bg-secondary text-lg ${tone}`}
-            >
-              {member.name[0]}
-            </span>
-          )}
-          <div>
-            <p className={`text-lg font-semibold ${tone}`}>{member.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {member.where} · {member.gender === "m" ? "男生" : "女生"}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-2xl bg-secondary/50 p-3">
-          <p className="text-[11px] text-muted-foreground">今日互动</p>
-          <p className="mt-1 text-sm">{rel ? rel.desc : "你今天还没有和 TA 说过话"}</p>
-          {rel && <p className="mt-1 text-[11px] text-muted-foreground">{rel.meta}</p>}
-        </div>
-
-        {rel && (
-          <div className="mt-3 flex items-center gap-2">
-            <Heart className="size-4 text-primary" />
-            <span className="text-sm">心动值 {rel.value}</span>
-          </div>
-        )}
-
-        <button
-          onClick={onChat}
-          className="mt-5 w-full rounded-full bg-romance py-3 text-sm font-semibold text-primary-foreground"
-        >
-          <span className="inline-flex items-center gap-2">
-            <MessageCircle className="size-4" /> 和 {member.name} 发起对话
-          </span>
-        </button>
-
-        {scene && (
-          <button
-            onClick={() => {
-              onClose();
-              onOpen(scene);
-            }}
-            className="mt-2 w-full rounded-full border border-border py-3 text-sm text-foreground"
-          >
-            查看 TA 所在的事件 · {scene.title}
-          </button>
-        )}
-        <button
-          onClick={onClose}
-          className="mt-2 w-full rounded-full border border-border py-3 text-sm text-muted-foreground"
-        >
-          关闭
-        </button>
-      </div>
     </div>
   );
 }
@@ -1197,19 +921,36 @@ function TabBar({
 
 /** 7 天旅程时间轴 */
 function JourneyTimeline() {
-  const [open, setOpen] = useState<number | null>(currentDay);
+  const DAY_KEY = "house-current-day";
+  const [day, setDay] = useState<number>(() => {
+    if (typeof window === "undefined") return currentDay;
+    const v = Number(window.localStorage.getItem(DAY_KEY));
+    return v >= 1 && v <= 7 ? v : currentDay;
+  });
+  const [open, setOpen] = useState<number | null>(day);
   const [finale, setFinale] = useState(false);
+
+  const nextDay = () => {
+    const n = Math.min(day + 1, journey.length);
+    setDay(n);
+    setOpen(n);
+    try {
+      window.localStorage.setItem(DAY_KEY, String(n));
+    } catch {
+      /* ignore */
+    }
+  };
 
   return (
     <section className="mt-5 px-5">
       <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-medium">7 天旅程</h2>
-        <span className="text-[11px] text-muted-foreground">Day {currentDay} / 7</span>
+        <span className="text-[11px] text-muted-foreground">Day {day} / 7</span>
       </div>
 
       <div className="mt-3 flex items-center gap-1">
         {journey.map((d) => {
-          const state = d.day < currentDay ? "past" : d.day === currentDay ? "now" : "future";
+          const state = d.day < day ? "past" : d.day === day ? "now" : "future";
           return (
             <button
               key={d.day}
@@ -1237,7 +978,7 @@ function JourneyTimeline() {
                   )}
                 </span>
                 <span
-                  className={`h-[2px] flex-1 ${d.day < currentDay ? "bg-primary/60" : "bg-border"} ${
+                  className={`h-[2px] flex-1 ${d.day < day ? "bg-primary/60" : "bg-border"} ${
                     d.day === journey.length ? "opacity-0" : ""
                   }`}
                 />
@@ -1254,6 +995,16 @@ function JourneyTimeline() {
         })}
       </div>
 
+      {day < journey.length && (
+        <button
+          onClick={nextDay}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/40 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 active:scale-[0.99]"
+        >
+          进入下一天 · Day {String(day + 1).padStart(2, "0")} {journey[day]!.label}
+          <ChevronRight className="size-3.5" />
+        </button>
+      )}
+
       {open !== null && (
         <div className="mt-3 rounded-2xl glass-card p-4 animate-fade-in">
           <div className="flex items-baseline gap-2">
@@ -1266,7 +1017,7 @@ function JourneyTimeline() {
             {journey[open - 1]!.desc}
           </p>
           <p className="mt-2 text-[11px] text-accent">
-            {open < currentDay ? "已经过去" : open === currentDay ? "正在进行" : "还没发生"}
+            {open < day ? "已经过去" : open === day ? "正在进行" : "还没发生"}
           </p>
           {open === journey.length && (
             <button
