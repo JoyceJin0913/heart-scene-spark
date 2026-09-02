@@ -924,19 +924,36 @@ function TabBar({
 
 /** 7 天旅程时间轴 */
 function JourneyTimeline() {
-  const [open, setOpen] = useState<number | null>(currentDay);
+  const DAY_KEY = "house-current-day";
+  const [day, setDay] = useState<number>(() => {
+    if (typeof window === "undefined") return currentDay;
+    const v = Number(window.localStorage.getItem(DAY_KEY));
+    return v >= 1 && v <= 7 ? v : currentDay;
+  });
+  const [open, setOpen] = useState<number | null>(day);
   const [finale, setFinale] = useState(false);
+
+  const nextDay = () => {
+    const n = Math.min(day + 1, journey.length);
+    setDay(n);
+    setOpen(n);
+    try {
+      window.localStorage.setItem(DAY_KEY, String(n));
+    } catch {
+      /* ignore */
+    }
+  };
 
   return (
     <section className="mt-5 px-5">
       <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-medium">7 天旅程</h2>
-        <span className="text-[11px] text-muted-foreground">Day {currentDay} / 7</span>
+        <span className="text-[11px] text-muted-foreground">Day {day} / 7</span>
       </div>
 
       <div className="mt-3 flex items-center gap-1">
         {journey.map((d) => {
-          const state = d.day < currentDay ? "past" : d.day === currentDay ? "now" : "future";
+          const state = d.day < day ? "past" : d.day === day ? "now" : "future";
           return (
             <button
               key={d.day}
