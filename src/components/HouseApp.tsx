@@ -981,7 +981,7 @@ function JourneyTimeline() {
                   )}
                 </span>
                 <span
-                  className={`h-[2px] flex-1 ${d.day < currentDay ? "bg-primary/60" : "bg-border"} ${
+                  className={`h-[2px] flex-1 ${d.day < day ? "bg-primary/60" : "bg-border"} ${
                     d.day === journey.length ? "opacity-0" : ""
                   }`}
                 />
@@ -998,6 +998,16 @@ function JourneyTimeline() {
         })}
       </div>
 
+      {day < journey.length && (
+        <button
+          onClick={nextDay}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/40 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 active:scale-[0.99]"
+        >
+          进入下一天 · Day {String(day + 1).padStart(2, "0")} {journey[day]!.label}
+          <ChevronRight className="size-3.5" />
+        </button>
+      )}
+
       {open !== null && (
         <div className="mt-3 rounded-2xl glass-card p-4 animate-fade-in">
           <div className="flex items-baseline gap-2">
@@ -1010,7 +1020,7 @@ function JourneyTimeline() {
             {journey[open - 1]!.desc}
           </p>
           <p className="mt-2 text-[11px] text-accent">
-            {open < currentDay ? "已经过去" : open === currentDay ? "正在进行" : "还没发生"}
+            {open < day ? "已经过去" : open === day ? "正在进行" : "还没发生"}
           </p>
           {open === journey.length && (
             <button
