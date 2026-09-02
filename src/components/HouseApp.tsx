@@ -310,25 +310,6 @@ function HomeView({
           <p className="text-2xl font-semibold text-foreground drop-shadow">Day 04</p>
           <p className="mt-1 text-sm text-foreground/80">20:37 🌙</p>
         </div>
-
-        {hotspots.map((h) => {
-          const s = scenes.find((x) => x.id === h.sceneId);
-          if (!s) return null;
-          return (
-            <button
-              key={h.sceneId}
-              onClick={() => onOpen(s)}
-              style={{ top: h.top, left: h.left }}
-              className="absolute inline-flex items-center gap-2 rounded-full glass-card px-3 py-1.5 text-xs text-foreground transition-transform hover:scale-105 active:scale-95"
-            >
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/70" />
-                <span className="relative inline-flex size-2 rounded-full bg-primary" />
-              </span>
-              {h.label}
-            </button>
-          );
-        })}
       </section>
 
       <JourneyTimeline />
