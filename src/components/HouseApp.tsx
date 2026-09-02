@@ -283,7 +283,6 @@ function HomeView({
   canEnterRoom: boolean;
   onEnterRoom: () => void;
 }) {
-  const hero = scenes[1]!;
   const [chatWith, setChatWith] = useState<Member | null>(null);
 
   return (
