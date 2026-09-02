@@ -57,6 +57,8 @@ export const microEvents: { time: string; text: string }[] = [
 export type Member = {
   name: string;
   gender: Gender;
+  occupation: string;
+  mbti: string;
   where: string;
   top: string;
   left: string;
@@ -64,16 +66,16 @@ export type Member = {
 };
 
 export const members: Member[] = [
-  { name: "林一", gender: "m", where: "在客厅", top: "22%", left: "6%", avatar: linyi },
-  { name: "周叙", gender: "m", where: "在厨房", top: "22%", left: "56%" },
-  { name: "沈知", gender: "m", where: "在阳台", top: "33%", left: "30%", avatar: shenzhi },
-  { name: "陆野", gender: "m", where: "在客厅", top: "44%", left: "6%" },
-  { name: "江郁", gender: "m", where: "在阳台", top: "44%", left: "56%" },
-  { name: "苏杳", gender: "f", where: "在客厅", top: "55%", left: "6%", avatar: suyao },
-  { name: "温宁", gender: "f", where: "在厨房", top: "55%", left: "56%", avatar: wenning },
-  { name: "许佳", gender: "f", where: "在阳台", top: "66%", left: "30%", avatar: xujia },
-  { name: "白露", gender: "f", where: "在厨房", top: "77%", left: "6%" },
-  { name: "夏可", gender: "f", where: "在客厅", top: "77%", left: "56%" },
+  { name: "林一", gender: "m", occupation: "建筑设计师", mbti: "INFJ", where: "在客厅", top: "22%", left: "6%", avatar: linyi },
+  { name: "周叙", gender: "m", occupation: "投行分析师", mbti: "ENTJ", where: "在厨房", top: "22%", left: "56%" },
+  { name: "沈知", gender: "m", occupation: "独立音乐人", mbti: "ISFP", where: "在阳台", top: "33%", left: "30%", avatar: shenzhi },
+  { name: "陆野", gender: "m", occupation: "户外运动教练", mbti: "ESTP", where: "在客厅", top: "44%", left: "6%" },
+  { name: "江郁", gender: "m", occupation: "AI 产品经理", mbti: "INTP", where: "在阳台", top: "44%", left: "56%" },
+  { name: "苏杳", gender: "f", occupation: "品牌策划", mbti: "ENFP", where: "在客厅", top: "55%", left: "6%", avatar: suyao },
+  { name: "温宁", gender: "f", occupation: "儿科护士", mbti: "ISFJ", where: "在厨房", top: "55%", left: "56%", avatar: wenning },
+  { name: "许佳", gender: "f", occupation: "律师事务所合伙人", mbti: "ESTJ", where: "在阳台", top: "66%", left: "30%", avatar: xujia },
+  { name: "白露", gender: "f", occupation: "绘本插画师", mbti: "INFP", where: "在厨房", top: "77%", left: "6%" },
+  { name: "夏可", gender: "f", occupation: "综艺编导", mbti: "ESFP", where: "在客厅", top: "77%", left: "56%" },
 ];
 
 export const avatarOf = (name: string): string | undefined =>
