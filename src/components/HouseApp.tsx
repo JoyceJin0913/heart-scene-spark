@@ -293,69 +293,47 @@ function HomeView({
         <p className="mt-2 text-sm text-muted-foreground">今天的小屋生活</p>
       </header>
 
-      <section className="relative mt-5 overflow-hidden rounded-3xl mx-4 shadow-glow">
-        <img
-          src={hero.image}
-          alt="小屋客厅的夜晚，成员们围坐聊天"
-          width={1024}
-          height={1280}
-          className="h-[300px] w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-night-fade" />
-
-        <div className="absolute inset-x-0 top-5 text-center">
-          <p className="text-2xl font-semibold text-foreground drop-shadow">Day 04</p>
-          <p className="mt-1 text-sm text-foreground/80">20:37 🌙</p>
-        </div>
-      </section>
-
       <JourneyTimeline />
-
-
 
       {/* 发起私聊：全员平铺 */}
       <section className="mt-6 px-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-medium">发起私聊</h2>
-          <span className="text-[11px] text-muted-foreground">5 男 · 5 女</span>
+          <span className="text-[11px] text-muted-foreground">{members.length} 位嘉宾</span>
         </div>
         <p className="mt-1 text-[11px] text-muted-foreground">
           小屋安静下来了，挑一个想聊的人说几句话吧
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2.5">
           {members.map((m) => {
-            const tone = m.gender === "m" ? "text-male" : "text-female";
-            const ring = m.gender === "m" ? "ring-male/40" : "ring-female/40";
             const aff = affinities.find((a) => a.name === m.name);
             return (
               <div
                 key={m.name}
-                className="flex flex-col items-center gap-2 rounded-2xl glass-card p-3.5"
+                className="flex flex-col gap-2 rounded-2xl glass-card p-3"
               >
                 {m.avatar ? (
                   <img
                     src={m.avatar}
                     alt={m.name}
                     loading="lazy"
-                    className={`size-14 rounded-full object-cover ring-2 ${ring}`}
+                    className="aspect-square w-full rounded-2xl object-cover"
                   />
                 ) : (
-                  <span
-                    className={`grid size-14 place-items-center rounded-full bg-secondary text-lg ring-2 ${ring} ${tone}`}
-                  >
+                  <span className="grid aspect-square w-full place-items-center rounded-2xl bg-secondary text-2xl text-foreground">
                     {m.name[0]}
                   </span>
                 )}
-                <div className="text-center">
-                  <p className={`text-sm font-semibold ${tone}`}>{m.name}</p>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{m.name}</p>
                   <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    {m.gender === "m" ? "男生" : "女生"}
+                    {m.occupation} · {m.mbti}
                     {aff ? ` · 心动值 ${aff.value}` : ""}
                   </p>
                 </div>
                 <button
                   onClick={() => setChatWith(m)}
-                  className="inline-flex items-center gap-1 rounded-full bg-romance px-3.5 py-1.5 text-[11px] font-medium text-primary-foreground transition-transform active:scale-95"
+                  className="mt-auto inline-flex items-center justify-center gap-1 rounded-full bg-romance px-3.5 py-1.5 text-[11px] font-medium text-primary-foreground transition-transform active:scale-95"
                 >
                   <MessageCircle className="size-3" /> 私聊
                 </button>
